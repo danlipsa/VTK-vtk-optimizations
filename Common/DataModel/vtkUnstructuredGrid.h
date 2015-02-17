@@ -98,6 +98,7 @@ public:
   // npts is the number of faces in the cell. ptIds is the list of face stream:
   // (numFace0Pts, id1, id2, id3, numFace1Pts,id1, id2, id3, ...)
   // Make sure you have called Allocate() before calling this method
+  // FIXME: Might not work corectly for polyhedron cells
   vtkIdType InsertNextCell(int type, vtkIdType npts, vtkIdType *ptIds);
 
   // Description:
@@ -108,6 +109,7 @@ public:
   // a special ptIds input format is required:
   // (numCellFaces, numFace0Pts, id1, id2, id3, numFace1Pts,id1, id2, id3, ...)
   // Make sure you have called Allocate() before calling this method
+  // FIXME: Might not work corectly for polyhedron cells
   vtkIdType InsertNextCell(int type, vtkIdList *ptIds);
 
   // Desciption:
@@ -117,8 +119,11 @@ public:
   // [numFace0Pts, id1, id2, id3, numFace1Pts,id1, id2, id3, ...].
   // All point Ids are global.
   // Make sure you have called Allocate() before calling this method
+  // FIXME: First function might not work corectly, use the second one.
   vtkIdType InsertNextCell(int type, vtkIdType npts, vtkIdType *ptIds,
                            vtkIdType nfaces, vtkIdType *faces);
+  vtkIdType InsertNextCell(vtkIdType npts, vtkIdType *ptIds, vtkCellArray *faces);
+
 
   // Description:
   // Standard vtkDataSet methods; see vtkDataSet.h for documentation.
@@ -134,7 +139,6 @@ public:
 
   int GetCellType(vtkIdType cellId);
   vtkUnsignedCharArray* GetCellTypesArray() { return this->Types; }
-  vtkIdTypeArray* GetCellLocationsArray() { return this->Locations; }
   void Squeeze();
   void Initialize();
   int GetMaxCellSize();
@@ -162,7 +166,7 @@ public:
   // Description:
   // Special methods specific to vtkUnstructuredGrid for defining the cells
   // composing the dataset. Most cells require just arrays of cellTypes,
-  // cellLocations and cellConnectivities which implicitly define the set of
+  // and cellConnectivities which implicitly define the set of
   // points in each cell and their ordering. In those cases the
   // cellConnectivities are of the format
   // (numFace0Pts, id1, id2, id3, numFace1Pts, id1, id2, id3...). However, some
@@ -171,11 +175,11 @@ public:
   // (numCellFaces, numFace0Pts, id1, id2, id3, numFace1Pts,id1, id2, id3, ...)
   // The functions use vtkPolyhedron::DecomposeAPolyhedronCell() to convert
   // polyhedron cells into standard format.
+  // FIXME: these functions might not work for polyhedrons
   void SetCells(int type, vtkCellArray *cells);
   void SetCells(int *types, vtkCellArray *cells);
-  void SetCells(vtkUnsignedCharArray *cellTypes, vtkIdTypeArray *cellLocations,
-                vtkCellArray *cells);
-  void SetCells(vtkUnsignedCharArray *cellTypes, vtkIdTypeArray *cellLocations,
+  void SetCells(vtkUnsignedCharArray *cellTypes, vtkCellArray *cells);
+  void SetCells(vtkUnsignedCharArray *cellTypes,
                 vtkCellArray *cells, vtkIdTypeArray *faceLocations,
                 vtkIdTypeArray *faces);
 
@@ -267,12 +271,6 @@ public:
   // Outputs (2) and (3) will be stacked at the end of the input
   // cellArray and faces. The original data in the input will not
   // be touched.
-  static void DecomposeAPolyhedronCell(vtkCellArray *polyhedronCellArray,
-                                       vtkIdType & nCellpts,
-                                       vtkIdType & nCellfaces,
-                                       vtkCellArray *cellArray,
-                                       vtkIdTypeArray *faces);
-
   static void DecomposeAPolyhedronCell(vtkIdType * polyhedronCellStream,
                                        vtkIdType & nCellpts,
                                        vtkIdType & nCellfaces,
@@ -359,7 +357,6 @@ protected:
   vtkCellArray *Connectivity;
   vtkCellLinks *Links;
   vtkUnsignedCharArray *Types;
-  vtkIdTypeArray *Locations;
 
   // Special support for polyhedra/cells with explicit face representations.
   // The Faces class represents polygonal faces using a modified vtkCellArray

@@ -203,20 +203,16 @@ int vtkXMLPPolyDataReader::ReadPieceData()
   vtkPolyData* output = vtkPolyData::SafeDownCast(this->GetCurrentOutput());
 
   // Copy the Verts.
-  this->CopyCellArray(this->TotalNumberOfVerts, input->GetVerts(),
-                      output->GetVerts());
+  output->GetVerts()->Append(input->GetVerts(), this->StartPoint);
 
   // Copy the Lines.
-  this->CopyCellArray(this->TotalNumberOfLines, input->GetLines(),
-                      output->GetLines());
+  output->GetLines()->Append(input->GetLines(), this->StartPoint);
 
   // Copy the Strips.
-  this->CopyCellArray(this->TotalNumberOfStrips, input->GetStrips(),
-                      output->GetStrips());
+  output->GetStrips()->Append(input->GetStrips(), this->StartPoint);
 
   // Copy the Polys.
-  this->CopyCellArray(this->TotalNumberOfPolys, input->GetPolys(),
-                      output->GetPolys());
+  output->GetPolys()->Append(input->GetPolys(), this->StartPoint);
 
   return 1;
 }

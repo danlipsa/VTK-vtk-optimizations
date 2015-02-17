@@ -75,8 +75,11 @@ public:
       {
 
       vtkPolyLine *polyline = vtkPolyLine::New();
-      polyline->Initialize( pd->GetNumberOfPoints(),
-                            pd->GetLines()->GetPointer()+1,
+      vtkIdType* pts = NULL;
+      vtkIdType npts = 0;
+      pd->GetLines()->GetCellFromId(0, npts, pts);
+      polyline->Initialize( npts,
+                            pts,
                             pd->GetPoints() );
 
       this->PolyPlane->SetPolyLine( polyline );

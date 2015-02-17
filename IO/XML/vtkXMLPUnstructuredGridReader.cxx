@@ -107,7 +107,7 @@ void vtkXMLPUnstructuredGridReader::SetupOutputData()
   vtkIdTypeArray* locations = vtkIdTypeArray::New();
   locations->SetNumberOfTuples(this->GetNumberOfCells());
 
-  output->SetCells(cellTypes, locations, outCells);
+  output->SetCells(cellTypes, outCells);
 
   locations->Delete();
   outCells->Delete();
@@ -137,28 +137,8 @@ int vtkXMLPUnstructuredGridReader::ReadPieceData()
   vtkUnstructuredGrid* output =
     vtkUnstructuredGrid::SafeDownCast(this->GetCurrentOutput());
 
-  // Save the start location where the new cell connectivity will be
-  // appended.
-  vtkIdType startLoc = 0;
-  if (output->GetCells()->GetData())
-    {
-    startLoc = output->GetCells()->GetData()->GetNumberOfTuples();
-    }
-
   // Copy the Cells.
-  this->CopyCellArray(
-    this->TotalNumberOfCells, input->GetCells(), output->GetCells());
-
-  // Copy the cell locations with offset adjustment.
-  vtkIdTypeArray* inLocations = input->GetCellLocationsArray();
-  vtkIdTypeArray* outLocations = output->GetCellLocationsArray();
-  vtkIdType* inLocs = inLocations->GetPointer(0);
-  vtkIdType* outLocs = outLocations->GetPointer(this->StartCell);
-  vtkIdType numCells = inLocations->GetNumberOfTuples();
-  for (vtkIdType i = 0;i < numCells; ++i)
-    {
-    outLocs[i] = inLocs[i] + startLoc;
-    }
+  output->GetCells()->Append(input->GetCells(), this->StartPoint);
 
   // Copy the cooresponding cell types.
   vtkUnsignedCharArray* inTypes = input->GetCellTypesArray();

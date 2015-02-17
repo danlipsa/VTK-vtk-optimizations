@@ -91,7 +91,7 @@ int vtkRectilinearGridOutlineFilter::RequestData(
   newPts = vtkPoints::New();
   newPts->Allocate(24);
   newLines = vtkCellArray::New();
-  newLines->Allocate(newLines->EstimateSize(12,2));
+  newLines->Reserve(12,2);
 
   // xMin yMin
   if (ext[0] == wholeExt[0] && ext[2] == wholeExt[2])

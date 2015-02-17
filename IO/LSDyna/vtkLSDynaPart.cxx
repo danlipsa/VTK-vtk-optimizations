@@ -194,30 +194,31 @@ class vtkLSDynaPart::InternalCells
 //lightweight class that holds the cell topology.In buildTopology
 //we will set the unstructured grid pointers to look at these vectors
 public:
+  InternalCells()
+  {
+    this->cellArray = vtkCellArray::New();
+  }
+  ~InternalCells()
+  {
+    this->cellArray->Delete();
+  }
 
   size_t size() const {return types.size();}
-  size_t dataSize() const {return data.size();}
 
   void add(const int& cellType, const vtkIdType& npts, vtkIdType conn[8])
   {
     types.push_back(static_cast<unsigned char>(cellType));
-
-    data.push_back(npts); //add in the num of points
-    locations.push_back(static_cast<vtkIdType>(data.size()-1));
-    data.insert(data.end(),conn,conn+npts);
+    cellArray->InsertNextCell(npts, conn);
   }
 
   void reserve(const vtkIdType& numCells, const vtkIdType& dataLen)
   {
     types.reserve(numCells);
-    locations.reserve(numCells);
-    //data len only holds total number of points across the cells
-    data.reserve(numCells+dataLen);
+    cellArray->Allocate(numCells, dataLen);
   }
 
   std::vector<unsigned char> types;
-  std::vector<vtkIdType> locations;
-  std::vector<vtkIdType> data;
+  vtkCellArray* cellArray;
 };
 
 //-----------------------------------------------------------------------------
@@ -898,34 +899,15 @@ void vtkLSDynaPart::BuildCells()
 {
   this->NumberOfCells = this->Cells->size();
 
-  //make the unstrucuted grid data structures point to the
-  //Cells vectors underlying memory
-  vtkIdType cellDataSize = this->Cells->dataSize();
-
-  //copy the contents from the part into a cell array.
-  vtkIdTypeArray *cellArray = vtkIdTypeArray::New();
-  cellArray->SetVoidArray(&this->Cells->data[0],cellDataSize,1);
-
-  //set the idtype aray as the cellarray
-  vtkCellArray *cells = vtkCellArray::New();
-  cells->SetCells(this->NumberOfCells,cellArray);
-  cellArray->FastDelete();
-
   //now copy the cell types from the vector to
   vtkUnsignedCharArray* cellTypes = vtkUnsignedCharArray::New();
   cellTypes->SetVoidArray(&this->Cells->types[0],this->NumberOfCells,1);
 
-  //last is the cell locations
-  vtkIdTypeArray *cellLocations = vtkIdTypeArray::New();
-  cellLocations->SetVoidArray(&this->Cells->locations[0],this->NumberOfCells,1);
-
   //actually set up the grid
-  this->Grid->SetCells(cellTypes,cellLocations,cells,NULL,NULL);
+  this->Grid->SetCells(cellTypes,this->Cells->cellArray,NULL,NULL);
 
   //remove references
   cellTypes->FastDelete();
-  cellLocations->FastDelete();
-  cells->FastDelete();
 }
 
 //-----------------------------------------------------------------------------
@@ -935,18 +917,19 @@ void vtkLSDynaPart::BuildUniquePoints()
   //we need to determine the number of unique points in this part
   //walk the cell structure to find all the unique points
 
-  std::vector<vtkIdType>::const_iterator cellIt;
   std::vector<vtkIdType>::iterator cIt;
 
   BitVector pointUsage(this->NumberOfGlobalPoints,false);
   this->NumberOfPoints = 0;
-  for(cellIt=this->Cells->data.begin();cellIt!=this->Cells->data.end();)
+  for(vtkIdType cellId = 0;
+      cellId < this->Cells->cellArray->GetNumberOfCells(); ++cellId)
     {
-    const vtkIdType npts(*cellIt);
-    ++cellIt;
-    for(vtkIdType i=0;i<npts;++i,++cellIt)
+    vtkIdType npts = 0;
+    vtkIdType* points = NULL;
+    this->Cells->cellArray->GetCellFromId(cellId, npts, points);
+    for(vtkIdType i=0;i<npts;++i)
       {
-      const vtkIdType id((*cellIt)-1);
+      const vtkIdType id(points[i]-1);
       if(!pointUsage[id])
         {
         pointUsage[id] = true;
@@ -997,14 +980,16 @@ void vtkLSDynaPart::BuildUniquePoints()
     }
 
   //now fixup the cellIds
-  for(cIt=this->Cells->data.begin();cIt!=this->Cells->data.end();)
+  for(vtkIdType cellId = 0;
+      cellId < this->Cells->cellArray->GetNumberOfCells(); ++cellId)
     {
-    const vtkIdType npts(*cIt);
-    ++cIt;
-    for(vtkIdType i=0;i<npts;++i,++cIt)
+    vtkIdType npts = 0;
+    vtkIdType* oId = NULL;
+    this->Cells->cellArray->GetCellFromId(cellId, npts, oId);
+    for(vtkIdType i=0;i<npts;++i)
       {
-      const vtkIdType oId((*cIt)-min-1);
-      *cIt = uniquePoints[oId];
+      *oId = uniquePoints[*oId - min - 1];
+      ++oId;
       }
     }
 

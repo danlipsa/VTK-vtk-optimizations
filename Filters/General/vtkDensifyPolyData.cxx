@@ -393,7 +393,7 @@ int vtkDensifyPolyData::RequestData(
   outputPoints->DeepCopy( inputPoints );
 
   // Will be at least that big.. in reality much larger..
-  outputPolys->Allocate( outputPolys->EstimateSize( inputNumCells, 3 ) );
+  outputPolys->Reserve(inputNumCells, 3);
 
   // Copy pointdata structure from input. There will be at least as many
   // points as in the input.

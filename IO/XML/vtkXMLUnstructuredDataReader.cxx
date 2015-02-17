@@ -660,38 +660,20 @@ int vtkXMLUnstructuredDataReader::ReadCellArray(vtkIdType numberOfCells,
     return 0;
     }
 
-
-  // Allocate memory in the output connectivity array.
-  vtkIdType curSize = 0;
-  if (this->Piece > this->StartPiece && outCells->GetData())
-    {
-    // Refer to BUG #12202 and BUG #12690. The (this->Piece > this->StartPiece)
-    // check ensures that when we are reading mulitple timesteps, we don't end
-    // up appending to existing cell arrays infinitely. An earlier version of
-    // the fix assumed that vtkXMLUnstructuredDataReader read only 1 piece at a
-    // time, which was incorrect (and hence  BUG #12690).
-    curSize = outCells->GetData()->GetNumberOfTuples();
-    }
-
-  vtkIdType newSize = curSize+numberOfCells+cellPoints->GetNumberOfTuples();
-  vtkIdType* cptr = outCells->WritePointer(totalNumberOfCells, newSize);
-  cptr += curSize;
-
   // Copy the connectivity data.
   vtkIdType previousOffset = 0;
   for(i=0; i < numberOfCells; ++i)
     {
-    vtkIdType length = cellOffsets->GetValue(i)-previousOffset;
-    *cptr++ = length;
+    vtkIdType length = cellOffsets->GetValue(i) - previousOffset;
+    outCells->InsertNextCell(length);
     vtkIdType* sptr = cellPoints->GetPointer(previousOffset);
     // Copy the point indices, but increment them for the appended
     // version's index.
     vtkIdType j;
     for(j=0;j < length; ++j)
       {
-      cptr[j] = sptr[j]+this->StartPoint;
+      outCells->InsertCellPoint(sptr[j]+this->StartPoint);
       }
-    cptr += length;
     previousOffset += length;
     }
 
@@ -1051,4 +1033,3 @@ int vtkXMLUnstructuredDataReader::CellsNeedToReadTimeStep(vtkXMLDataElement *eNe
   // all other cases we don't need to read:
   return 0;
 }
-

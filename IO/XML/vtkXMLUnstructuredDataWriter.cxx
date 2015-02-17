@@ -862,25 +862,20 @@ void vtkXMLUnstructuredDataWriter::ConvertCells(
 //----------------------------------------------------------------------------
 void vtkXMLUnstructuredDataWriter::ConvertCells(vtkCellArray* cells)
 {
-  vtkIdTypeArray* connectivity = cells->GetData();
-  vtkIdType numberOfCells = cells->GetNumberOfCells();
-  vtkIdType numberOfTuples = connectivity->GetNumberOfTuples();
+  this->CellPoints->SetNumberOfTuples(cells->GetNumberOfPoints());
+  this->CellOffsets->SetNumberOfTuples(cells->GetNumberOfCells());
 
-  this->CellPoints->SetNumberOfTuples(numberOfTuples - numberOfCells);
-  this->CellOffsets->SetNumberOfTuples(numberOfCells);
-
-  vtkIdType* inCell = connectivity->GetPointer(0);
   vtkIdType* outCellPointsBase = this->CellPoints->GetPointer(0);
   vtkIdType* outCellPoints = outCellPointsBase;
   vtkIdType* outCellOffset = this->CellOffsets->GetPointer(0);
 
-  vtkIdType i;
-  for(i=0;i < numberOfCells; ++i)
+  for (vtkIdType i = 0; i < cells->GetNumberOfCells(); ++i)
     {
-    vtkIdType numberOfPoints = *inCell++;
-    memcpy(outCellPoints, inCell, sizeof(vtkIdType)*numberOfPoints);
+    vtkIdType numberOfPoints;
+    vtkIdType* points;
+    cells->GetCellFromId(i, numberOfPoints, points);
+    memcpy(outCellPoints, points, sizeof(vtkIdType)*numberOfPoints);
     outCellPoints += numberOfPoints;
-    inCell += numberOfPoints;
     *outCellOffset++ = outCellPoints - outCellPointsBase;
     }
 }
@@ -1014,4 +1009,3 @@ void vtkXMLUnstructuredDataWriter::SetInputUpdateExtent(
   inInfo->Set(
     vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_GHOST_LEVELS(), ghostLevel);
 }
-

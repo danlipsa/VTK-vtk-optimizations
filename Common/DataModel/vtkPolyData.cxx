@@ -258,7 +258,7 @@ vtkCell *vtkPolyData::GetCell(vtkIdType cellId)
         this->Vertex = vtkVertex::New();
         }
       cell = this->Vertex;
-      this->Verts->GetCell(loc,numPts,pts);
+      this->Verts->GetCellFromId(loc,numPts,pts);
       break;
 
     case VTK_POLY_VERTEX:
@@ -267,7 +267,7 @@ vtkCell *vtkPolyData::GetCell(vtkIdType cellId)
         this->PolyVertex = vtkPolyVertex::New();
         }
       cell = this->PolyVertex;
-      this->Verts->GetCell(loc,numPts,pts);
+      this->Verts->GetCellFromId(loc,numPts,pts);
       cell->PointIds->SetNumberOfIds(numPts); //reset number of points
       cell->Points->SetNumberOfPoints(numPts);
       break;
@@ -278,7 +278,7 @@ vtkCell *vtkPolyData::GetCell(vtkIdType cellId)
         this->Line = vtkLine::New();
         }
       cell = this->Line;
-      this->Lines->GetCell(loc,numPts,pts);
+      this->Lines->GetCellFromId(loc,numPts,pts);
       break;
 
     case VTK_POLY_LINE:
@@ -287,7 +287,7 @@ vtkCell *vtkPolyData::GetCell(vtkIdType cellId)
         this->PolyLine = vtkPolyLine::New();
         }
       cell = this->PolyLine;
-      this->Lines->GetCell(loc,numPts,pts);
+      this->Lines->GetCellFromId(loc,numPts,pts);
       cell->PointIds->SetNumberOfIds(numPts); //reset number of points
       cell->Points->SetNumberOfPoints(numPts);
       break;
@@ -298,7 +298,7 @@ vtkCell *vtkPolyData::GetCell(vtkIdType cellId)
         this->Triangle = vtkTriangle::New();
         }
       cell = this->Triangle;
-      this->Polys->GetCell(loc,numPts,pts);
+      this->Polys->GetCellFromId(loc,numPts,pts);
       break;
 
     case VTK_QUAD:
@@ -307,7 +307,7 @@ vtkCell *vtkPolyData::GetCell(vtkIdType cellId)
         this->Quad = vtkQuad::New();
         }
       cell = this->Quad;
-      this->Polys->GetCell(loc,numPts,pts);
+      this->Polys->GetCellFromId(loc,numPts,pts);
       break;
 
     case VTK_POLYGON:
@@ -316,7 +316,7 @@ vtkCell *vtkPolyData::GetCell(vtkIdType cellId)
         this->Polygon = vtkPolygon::New();
         }
       cell = this->Polygon;
-      this->Polys->GetCell(loc,numPts,pts);
+      this->Polys->GetCellFromId(loc,numPts,pts);
       cell->PointIds->SetNumberOfIds(numPts); //reset number of points
       cell->Points->SetNumberOfPoints(numPts);
       break;
@@ -327,7 +327,7 @@ vtkCell *vtkPolyData::GetCell(vtkIdType cellId)
         this->TriangleStrip = vtkTriangleStrip::New();
         }
       cell = this->TriangleStrip;
-      this->Strips->GetCell(loc,numPts,pts);
+      this->Strips->GetCellFromId(loc,numPts,pts);
       cell->PointIds->SetNumberOfIds(numPts); //reset number of points
       cell->Points->SetNumberOfPoints(numPts);
       break;
@@ -371,48 +371,48 @@ void vtkPolyData::GetCell(vtkIdType cellId, vtkGenericCell *cell)
     {
     case VTK_VERTEX:
       cell->SetCellTypeToVertex();
-      this->Verts->GetCell(loc,numPts,pts);
+      this->Verts->GetCellFromId(loc,numPts,pts);
       break;
 
     case VTK_POLY_VERTEX:
       cell->SetCellTypeToPolyVertex();
-      this->Verts->GetCell(loc,numPts,pts);
+      this->Verts->GetCellFromId(loc,numPts,pts);
       cell->PointIds->SetNumberOfIds(numPts); //reset number of points
       cell->Points->SetNumberOfPoints(numPts);
       break;
 
     case VTK_LINE:
       cell->SetCellTypeToLine();
-      this->Lines->GetCell(loc,numPts,pts);
+      this->Lines->GetCellFromId(loc,numPts,pts);
       break;
 
     case VTK_POLY_LINE:
       cell->SetCellTypeToPolyLine();
-      this->Lines->GetCell(loc,numPts,pts);
+      this->Lines->GetCellFromId(loc,numPts,pts);
       cell->PointIds->SetNumberOfIds(numPts); //reset number of points
       cell->Points->SetNumberOfPoints(numPts);
       break;
 
     case VTK_TRIANGLE:
       cell->SetCellTypeToTriangle();
-      this->Polys->GetCell(loc,numPts,pts);
+      this->Polys->GetCellFromId(loc,numPts,pts);
       break;
 
     case VTK_QUAD:
       cell->SetCellTypeToQuad();
-      this->Polys->GetCell(loc,numPts,pts);
+      this->Polys->GetCellFromId(loc,numPts,pts);
       break;
 
     case VTK_POLYGON:
       cell->SetCellTypeToPolygon();
-      this->Polys->GetCell(loc,numPts,pts);
+      this->Polys->GetCellFromId(loc,numPts,pts);
       cell->PointIds->SetNumberOfIds(numPts); //reset number of points
       cell->Points->SetNumberOfPoints(numPts);
       break;
 
     case VTK_TRIANGLE_STRIP:
       cell->SetCellTypeToTriangleStrip();
-      this->Strips->GetCell(loc,numPts,pts);
+      this->Strips->GetCellFromId(loc,numPts,pts);
       cell->PointIds->SetNumberOfIds(numPts); //reset number of points
       cell->Points->SetNumberOfPoints(numPts);
       break;
@@ -526,22 +526,22 @@ void vtkPolyData::GetCellBounds(vtkIdType cellId, double bounds[6])
     {
     case VTK_VERTEX:
     case VTK_POLY_VERTEX:
-      this->Verts->GetCell(loc,numPts,pts);
+      this->Verts->GetCellFromId(loc,numPts,pts);
       break;
 
     case VTK_LINE:
     case VTK_POLY_LINE:
-      this->Lines->GetCell(loc,numPts,pts);
+      this->Lines->GetCellFromId(loc,numPts,pts);
       break;
 
     case VTK_TRIANGLE:
     case VTK_QUAD:
     case VTK_POLYGON:
-      this->Polys->GetCell(loc,numPts,pts);
+      this->Polys->GetCellFromId(loc,numPts,pts);
       break;
 
     case VTK_TRIANGLE_STRIP:
-      this->Strips->GetCell(loc,numPts,pts);
+      this->Strips->GetCellFromId(loc,numPts,pts);
       break;
 
     default:
@@ -969,12 +969,11 @@ void vtkPolyData::BuildCells()
     {
     if ( npts > 1 )
       {
-      cells->InsertNextCell(VTK_POLY_VERTEX,
-                            inVerts->GetTraversalLocation(npts));
+      cells->InsertNextCell(VTK_POLY_VERTEX, inVerts->GetTraversalId()-1);
       }
     else
       {
-      cells->InsertNextCell(VTK_VERTEX,inVerts->GetTraversalLocation(npts));
+      cells->InsertNextCell(VTK_VERTEX,inVerts->GetTraversalId()-1);
       }
     }
 
@@ -982,11 +981,11 @@ void vtkPolyData::BuildCells()
     {
     if ( npts > 2 )
       {
-      cells->InsertNextCell(VTK_POLY_LINE,inLines->GetTraversalLocation(npts));
+      cells->InsertNextCell(VTK_POLY_LINE,inLines->GetTraversalId()-1);
       }
     else
       {
-      cells->InsertNextCell(VTK_LINE,inLines->GetTraversalLocation(npts));
+      cells->InsertNextCell(VTK_LINE,inLines->GetTraversalId()-1);
       }
     }
 
@@ -994,22 +993,22 @@ void vtkPolyData::BuildCells()
     {
     if ( npts == 3 )
       {
-      cells->InsertNextCell(VTK_TRIANGLE,inPolys->GetTraversalLocation(npts));
+      cells->InsertNextCell(VTK_TRIANGLE,inPolys->GetTraversalId()-1);
       }
     else if ( npts == 4 )
       {
-      cells->InsertNextCell(VTK_QUAD,inPolys->GetTraversalLocation(npts));
+      cells->InsertNextCell(VTK_QUAD,inPolys->GetTraversalId()-1);
       }
     else
       {
-      cells->InsertNextCell(VTK_POLYGON,inPolys->GetTraversalLocation(npts));
+      cells->InsertNextCell(VTK_POLYGON,inPolys->GetTraversalId()-1);
       }
     }
 
   for (inStrips->InitTraversal(); inStrips->GetNextCell(npts,pts); )
     {
     cells->InsertNextCell(VTK_TRIANGLE_STRIP,
-                          inStrips->GetTraversalLocation(npts));
+                          inStrips->GetTraversalId()-1);
     }
 }
 
@@ -1087,19 +1086,19 @@ void vtkPolyData::GetCellPoints(vtkIdType cellId, vtkIdType& npts,
   switch (type)
     {
     case VTK_VERTEX: case VTK_POLY_VERTEX:
-      this->Verts->GetCell(loc,npts,pts);
+      this->Verts->GetCellFromId(loc,npts,pts);
       break;
 
     case VTK_LINE: case VTK_POLY_LINE:
-      this->Lines->GetCell(loc,npts,pts);
+      this->Lines->GetCellFromId(loc,npts,pts);
       break;
 
     case VTK_TRIANGLE: case VTK_QUAD: case VTK_POLYGON:
-      this->Polys->GetCell(loc,npts,pts);
+      this->Polys->GetCellFromId(loc,npts,pts);
       break;
 
     case VTK_TRIANGLE_STRIP:
-      this->Strips->GetCell(loc,npts,pts);
+      this->Strips->GetCellFromId(loc,npts,pts);
       break;
 
     default:
@@ -1235,7 +1234,7 @@ void vtkPolyData::Allocate(vtkPolyData *inPolyData, vtkIdType numCells,
 // Note: will also insert VTK_PIXEL, but converts it to VTK_QUAD.
 vtkIdType vtkPolyData::InsertNextCell(int type, int npts, vtkIdType *pts)
 {
-  int id;
+  int id, localId;
 
   if ( !this->Cells )
     {
@@ -1248,21 +1247,18 @@ vtkIdType vtkPolyData::InsertNextCell(int type, int npts, vtkIdType *pts)
   switch (type)
     {
     case VTK_VERTEX: case VTK_POLY_VERTEX:
-      this->Verts->InsertNextCell(npts,pts);
-      id = this->Cells->InsertNextCell(type,
-                                       this->Verts->GetInsertLocation(npts));
+      localId = this->Verts->InsertNextCell(npts,pts);
+      id = this->Cells->InsertNextCell(type, localId);
       break;
 
     case VTK_LINE: case VTK_POLY_LINE:
-      this->Lines->InsertNextCell(npts,pts);
-      id = this->Cells->InsertNextCell(type,
-                                       this->Lines->GetInsertLocation(npts));
+      localId = this->Lines->InsertNextCell(npts,pts);
+      id = this->Cells->InsertNextCell(type, localId);
       break;
 
     case VTK_TRIANGLE: case VTK_QUAD: case VTK_POLYGON:
-      this->Polys->InsertNextCell(npts,pts);
-      id = this->Cells->InsertNextCell(type,
-                                       this->Polys->GetInsertLocation(npts));
+      localId = this->Polys->InsertNextCell(npts,pts);
+      id = this->Cells->InsertNextCell(type, localId);
       break;
 
     case VTK_PIXEL: //need to rearrange vertices
@@ -1272,16 +1268,14 @@ vtkIdType vtkPolyData::InsertNextCell(int type, int npts, vtkIdType *pts)
       pixPts[1] = pts[1];
       pixPts[2] = pts[3];
       pixPts[3] = pts[2];
-      this->Polys->InsertNextCell(npts,pixPts);
-      id = this->Cells->InsertNextCell(VTK_QUAD,
-                                       this->Polys->GetInsertLocation(npts));
+      localId = this->Polys->InsertNextCell(npts,pixPts);
+      id = this->Cells->InsertNextCell(VTK_QUAD, localId);
       break;
       }
 
     case VTK_TRIANGLE_STRIP:
-      this->Strips->InsertNextCell(npts,pts);
-      id = this->Cells->InsertNextCell(type,
-                                       this->Strips->GetInsertLocation(npts));
+      localId = this->Strips->InsertNextCell(npts,pts);
+      id = this->Cells->InsertNextCell(type, localId);
       break;
 
     default:
@@ -1299,7 +1293,7 @@ vtkIdType vtkPolyData::InsertNextCell(int type, int npts, vtkIdType *pts)
 // Note: will also insert VTK_PIXEL, but converts it to VTK_QUAD.
 vtkIdType vtkPolyData::InsertNextCell(int type, vtkIdList *pts)
 {
-  vtkIdType id;
+  vtkIdType id, localId;
   vtkIdType npts = pts->GetNumberOfIds();
 
   if ( !this->Cells )
@@ -1311,18 +1305,18 @@ vtkIdType vtkPolyData::InsertNextCell(int type, vtkIdList *pts)
   switch (type)
     {
     case VTK_VERTEX: case VTK_POLY_VERTEX:
-      this->Verts->InsertNextCell(pts);
-      id = this->Cells->InsertNextCell(type, this->Verts->GetInsertLocation(npts));
+      localId = this->Verts->InsertNextCell(pts);
+      id = this->Cells->InsertNextCell(type, localId);
       break;
 
     case VTK_LINE: case VTK_POLY_LINE:
-      this->Lines->InsertNextCell(pts);
-      id = this->Cells->InsertNextCell(type, this->Lines->GetInsertLocation(npts));
+      localId = this->Lines->InsertNextCell(pts);
+      id = this->Cells->InsertNextCell(type, localId);
       break;
 
     case VTK_TRIANGLE: case VTK_QUAD: case VTK_POLYGON:
-      this->Polys->InsertNextCell(pts);
-      id = this->Cells->InsertNextCell(type, this->Polys->GetInsertLocation(npts));
+      localId = this->Polys->InsertNextCell(pts);
+      id = this->Cells->InsertNextCell(type, localId);
       break;
 
     case VTK_PIXEL: //need to rearrange vertices
@@ -1332,14 +1326,14 @@ vtkIdType vtkPolyData::InsertNextCell(int type, vtkIdList *pts)
       pixPts[1] = pts->GetId(1);
       pixPts[2] = pts->GetId(3);
       pixPts[3] = pts->GetId(2);
-      this->Polys->InsertNextCell(4,pixPts);
-      id = this->Cells->InsertNextCell(VTK_QUAD, this->Polys->GetInsertLocation(npts));
+      localId = this->Polys->InsertNextCell(4,pixPts);
+      id = this->Cells->InsertNextCell(VTK_QUAD, localId);
       break;
       }
 
     case VTK_TRIANGLE_STRIP:
-      this->Strips->InsertNextCell(pts);
-      id = this->Cells->InsertNextCell(type, this->Strips->GetInsertLocation(npts));
+      localId = this->Strips->InsertNextCell(pts);
+      id = this->Cells->InsertNextCell(type, localId);
       break;
 
     case VTK_EMPTY_CELL:
@@ -1421,19 +1415,19 @@ void vtkPolyData::ReverseCell(vtkIdType cellId)
   switch (type)
     {
     case VTK_VERTEX: case VTK_POLY_VERTEX:
-     this->Verts->ReverseCell(loc);
+     this->Verts->ReverseCellFromId(loc);
      break;
 
     case VTK_LINE: case VTK_POLY_LINE:
-      this->Lines->ReverseCell(loc);
+      this->Lines->ReverseCellFromId(loc);
       break;
 
     case VTK_TRIANGLE: case VTK_QUAD: case VTK_POLYGON:
-      this->Polys->ReverseCell(loc);
+      this->Polys->ReverseCellFromId(loc);
       break;
 
     case VTK_TRIANGLE_STRIP:
-      this->Strips->ReverseCell(loc);
+      this->Strips->ReverseCellFromId(loc);
       break;
 
     default:
@@ -1519,19 +1513,19 @@ void vtkPolyData::ReplaceCell(vtkIdType cellId, int npts, vtkIdType *pts)
   switch (type)
     {
     case VTK_VERTEX: case VTK_POLY_VERTEX:
-     this->Verts->ReplaceCell(loc,npts,pts);
+     this->Verts->ReplaceCellFromId(loc,npts,pts);
      break;
 
     case VTK_LINE: case VTK_POLY_LINE:
-      this->Lines->ReplaceCell(loc,npts,pts);
+      this->Lines->ReplaceCellFromId(loc,npts,pts);
       break;
 
     case VTK_TRIANGLE: case VTK_QUAD: case VTK_POLYGON:
-      this->Polys->ReplaceCell(loc,npts,pts);
+      this->Polys->ReplaceCellFromId(loc,npts,pts);
       break;
 
     case VTK_TRIANGLE_STRIP:
-      this->Strips->ReplaceCell(loc,npts,pts);
+      this->Strips->ReplaceCellFromId(loc,npts,pts);
       break;
 
     default:
@@ -1554,19 +1548,19 @@ void vtkPolyData::ReplaceLinkedCell(vtkIdType cellId, int npts, vtkIdType *pts)
   switch (type)
     {
     case VTK_VERTEX: case VTK_POLY_VERTEX:
-     this->Verts->ReplaceCell(loc,npts,pts);
+     this->Verts->ReplaceCellFromId(loc,npts,pts);
      break;
 
     case VTK_LINE: case VTK_POLY_LINE:
-      this->Lines->ReplaceCell(loc,npts,pts);
+      this->Lines->ReplaceCellFromId(loc,npts,pts);
       break;
 
     case VTK_TRIANGLE: case VTK_QUAD: case VTK_POLYGON:
-      this->Polys->ReplaceCell(loc,npts,pts);
+      this->Polys->ReplaceCellFromId(loc,npts,pts);
       break;
 
     case VTK_TRIANGLE_STRIP:
-      this->Strips->ReplaceCell(loc,npts,pts);
+      this->Strips->ReplaceCellFromId(loc,npts,pts);
       break;
 
     default:

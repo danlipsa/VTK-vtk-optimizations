@@ -82,7 +82,7 @@ private:
 
   vtkExtractCellsSTLCloak *CellList;
 
-  int SubSetUGridCellArraySize;
+  int SubSetUGridCellArrayPointCount;
   char InputIsUgrid;
 
   vtkExtractCells(const vtkExtractCells&); // Not implemented

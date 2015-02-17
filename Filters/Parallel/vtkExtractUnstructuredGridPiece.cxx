@@ -85,7 +85,6 @@ void vtkExtractUnstructuredGridPiece::ComputeCellTags(vtkIntArray *tags,
                                               vtkUnstructuredGrid *input)
 {
   vtkIdType idx, ptId;
-  vtkIdType numCellPts;
 
   vtkIdType numCells = input->GetNumberOfCells();
 
@@ -124,16 +123,16 @@ void vtkExtractUnstructuredGridPiece::ComputeCellTags(vtkIntArray *tags,
     tags->SetValue(idx, -1);
     }
 
-  vtkIdType* cellPointer = (input->GetCells() ? input->GetCells()->GetPointer() : 0);
-  if(pointOwnership && cellPointer)
+  vtkCellArray* cellArray = input->GetCells();
+  if(pointOwnership && cellArray)
     {
     for (idx = 0; idx < numCells; ++idx)
       {
       // Fill in point ownership mapping.
-      numCellPts = cellPointer[0];
-      vtkIdType* ids = cellPointer+1;
-      // Move to the next cell.
-      cellPointer += (1 + numCellPts);
+      vtkIdType numCellPts = 0;
+      vtkIdType* ids = NULL;
+      cellArray->GetCellFromId(idx, numCellPts, ids);
+
       for (int j = 0; j < numCellPts; ++j)
         {
         ptId = ids[j];
@@ -175,8 +174,7 @@ int vtkExtractUnstructuredGridPiece::RequestData(
   vtkIdList *pointOwnership = 0;
   vtkUnsignedCharArray* pointGhostLevels = 0;
   vtkIdType i, ptId, newId, numPts, numCells;
-  int numCellPts;
-  vtkIdType *cellPointer;
+  vtkIdType numCellPts;
   vtkIdType *ids;
   vtkIdType *faceStream;
   vtkIdType numFaces;
@@ -243,15 +241,11 @@ int vtkExtractUnstructuredGridPiece::RequestData(
     }
 
   // Filter the cells
-  cellPointer = (input->GetCells() ? input->GetCells()->GetPointer() : 0);
+  vtkCellArray* cellArray = input->GetCells();
   for (cellId=0; cellId < numCells; cellId++)
     {
-    // Direct access to cells.
     cellType = cellTypes[cellId];
-    numCellPts = cellPointer[0];
-    ids = cellPointer+1;
-    // Move to the next cell.
-    cellPointer += (1 + *cellPointer);
+    cellArray->GetCellFromId(cellId, numCellPts, ids);
 
     if ( cellTags->GetValue(cellId) != -1) // satisfied thresholding
       {

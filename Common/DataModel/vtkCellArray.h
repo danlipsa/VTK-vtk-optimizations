@@ -49,9 +49,41 @@ public:
   static vtkCellArray *New();
 
   // Description:
-  // Allocate memory and set the size to extend by.
-  int Allocate(const vtkIdType sz, const int ext=1000)
-    {return this->Ia->Allocate(sz,ext);}
+  // Allocate enough memory to fit the source object
+  void Reserve(const vtkCellArray* src)
+  {
+    this->Points->Allocate(src->Points->GetNumberOfTuples());
+    this->CellIndex->Resize(src->CellIndex->GetNumberOfTuples());
+  }
+
+
+  // Description:
+  // Allocate memory specifying the number of points
+  int Allocate(const vtkIdType sz, int extSize = 1000)
+  {
+    // return this->Points->Allocate(sz) &&
+    //   this->CellIndex->Resize(sz/3); // assume triangles
+  }
+
+  // Description:
+  // Allocate memory specifying the number of cells and
+  // the number of points per cell
+  int Reserve(vtkIdType numberOfCells, vtkIdType cellsPerPoint)
+  {
+
+    return this->Points->Allocate(numberOfCells * cellsPerPoint) &&
+      this->CellIndex->Resize(numberOfCells+1);
+  }
+
+  // Description:
+  // Allocate memory specifying the number of cells and
+  // the number of points
+  int ReserveAll(vtkIdType numberOfCells, vtkIdType numberOfPoints)
+  {
+    return this->Points->Allocate(numberOfPoints) &&
+      this->CellIndex->Resize(numberOfCells+1);
+  }
+
 
   // Description:
   // Free any memory and reset to an empty state.
@@ -59,27 +91,24 @@ public:
 
   // Description:
   // Get the number of cells in the array.
-  vtkGetMacro(NumberOfCells, vtkIdType);
+  vtkIdType GetNumberOfCells() const
+  {
+    return this->CellIndex->GetNumberOfTuples() - 1;
+  }
 
   // Description:
-  // Set the number of cells in the array.
-  // DO NOT do any kind of allocation, advanced use only.
-  vtkSetMacro(NumberOfCells, vtkIdType);
-
-  // Description:
-  // Utility routines help manage memory of cell array. EstimateSize()
-  // returns a value used to initialize and allocate memory for array based
-  // on number of cells and maximum number of points making up cell.  If
-  // every cell is the same size (in terms of number of points), then the
-  // memory estimate is guaranteed exact. (If not exact, use Squeeze() to
-  // reclaim any extra memory.)
-  vtkIdType EstimateSize(vtkIdType numCells, int maxPtsPerCell)
-    {return numCells*(1+maxPtsPerCell);}
+  // Get total number of points in the array
+  vtkIdType GetNumberOfPoints() const
+  {
+    assert(this->Points->GetNumberOfTuples() ==
+           this->CellIndex->GetValue(this->CellIndex->GetNumberOfTuples() - 1));
+    return this->Points->GetNumberOfTuples();
+  }
 
   // Description:
   // A cell traversal methods that is more efficient than vtkDataSet traversal
   // methods.  InitTraversal() initializes the traversal of the list of cells.
-  void InitTraversal() {this->TraversalLocation=0;};
+  void InitTraversal() {this->TraversalId=0;};
 
   // Description:
   // A cell traversal methods that is more efficient than vtkDataSet traversal
@@ -95,26 +124,26 @@ public:
   int GetNextCell(vtkIdList *pts);
 
   // Description:
-  // Get the size of the allocated connectivity array.
+  // Get the size of the allocated connectivity data structure.
   vtkIdType GetSize()
-    {return this->Ia->GetSize();}
+  {
+    return this->Points->GetSize() + this->CellIndex->GetSize();
+  }
 
   // Description:
-  // Get the total number of entries (i.e., data values) in the connectivity
-  // array. This may be much less than the allocated size (i.e., return value
-  // from GetSize().)
-  vtkIdType GetNumberOfConnectivityEntries()
-    {return this->Ia->GetMaxId()+1;}
+  // Retrieves a cell given a cellId.
+  // The returned pointer can be used to access all the points of a cell
+  // as all cell's points are contiguous.
+  void GetCellFromId(vtkIdType cellId, vtkIdType &npts, vtkIdType* &pts) const;
+
+  // Description:
+  // Internal method used to retrieve a cell point count given a cellId
+  inline vtkIdType GetCellPointCountFromId(vtkIdType cellId) const;
 
   // Description:
   // Internal method used to retrieve a cell given an offset into
   // the internal array.
-  void GetCell(vtkIdType loc, vtkIdType &npts, vtkIdType* &pts);
-
-  // Description:
-  // Internal method used to retrieve a cell given an offset into
-  // the internal array.
-  void GetCell(vtkIdType loc, vtkIdList* pts);
+  void GetCellFromId(vtkIdType cellId, vtkIdList* pts);
 
   // Description:
   // Insert a cell object. Return the cell id of the cell.
@@ -123,7 +152,7 @@ public:
   // Description:
   // Create a cell by specifying the number of points and an array of point
   // id's.  Return the cell id of the cell.
-  vtkIdType InsertNextCell(vtkIdType npts, const vtkIdType* pts);
+  template<typename T> vtkIdType InsertNextCell(vtkIdType npts, const T* pts);
 
   // Description:
   // Create a cell by specifying a list of point ids. Return the cell id of
@@ -148,32 +177,20 @@ public:
   void UpdateCellCount(int npts);
 
   // Description:
-  // Computes the current insertion location within the internal array.
-  // Used in conjunction with GetCell(int loc,...).
-  vtkIdType GetInsertLocation(int npts)
-    {return (this->InsertLocation - npts - 1);};
-
-  // Description:
   // Get/Set the current traversal location.
-  vtkIdType GetTraversalLocation()
-    {return this->TraversalLocation;}
-  void SetTraversalLocation(vtkIdType loc)
-    {this->TraversalLocation = loc;}
-
-  // Description:
-  // Computes the current traversal location within the internal array. Used
-  // in conjunction with GetCell(int loc,...).
-  vtkIdType GetTraversalLocation(vtkIdType npts)
-    {return(this->TraversalLocation-npts-1);}
+  vtkIdType GetTraversalId()
+    {return this->TraversalId;}
+  void SetTraversalId(vtkIdType cellId)
+    {this->TraversalId = cellId;}
 
   // Description:
   // Special method inverts ordering of current cell. Must be called
   // carefully or the cell topology may be corrupted.
-  void ReverseCell(vtkIdType loc);
+  void ReverseCellFromId(vtkIdType cellId);
 
   // Description:
   // Replace the point ids of the cell with a different list of point ids.
-  void ReplaceCell(vtkIdType loc, int npts, const vtkIdType *pts);
+  void ReplaceCellFromId(vtkIdType cellId, int npts, const vtkIdType *pts);
 
   // Description:
   // Returns the size of the largest cell. The size is the number of points
@@ -181,34 +198,59 @@ public:
   int GetMaxCellSize();
 
   // Description:
-  // Get pointer to array of cell data.
-  vtkIdType *GetPointer()
-    {return this->Ia->GetPointer(0);}
-
-  // Description:
-  // Get pointer to data array for purpose of direct writes of data. Size is the
-  // total storage consumed by the cell array. ncells is the number of cells
-  // represented in the array.
-  vtkIdType *WritePointer(const vtkIdType ncells, const vtkIdType size);
-
-  // Description:
-  // Define multiple cells by providing a connectivity list. The list is in
-  // the form (npts,p0,p1,...p(npts-1), repeated for each cell). Be careful
-  // using this method because it discards the old cells, and anything
-  // referring these cells becomes invalid (for example, if BuildCells() has
-  // been called see vtkPolyData).  The traversal location is reset to the
-  // beginning of the list; the insertion location is set to the end of the
-  // list.
-  void SetCells(vtkIdType ncells, vtkIdTypeArray *cells);
-
-  // Description:
   // Perform a deep copy (no reference counting) of the given cell array.
   void DeepCopy(vtkCellArray *ca);
+  // Description:
+  // Append all cells in 'other' with their points offset with 'otherStartPoint'
+  void Append(const vtkCellArray *other, vtkIdType otherStartPoint);
 
   // Description:
-  // Return the underlying data as a data array.
-  vtkIdTypeArray* GetData()
-    {return this->Ia;}
+  // Copies cells from/to a format where each cell is represented by
+  // the number of points followed by the point ids. For example,
+  // for two cells which 3 and 4 points respectively, 'cells' is
+  // (3, p0_0, p0_1, p0_2, 4, p1_0, p1_1, p1_2, p1_3) where pi_j are point ids.
+  template<typename T>
+  void AppendFromCountPointsFormat(vtkIdType ncells, T *cells)
+  {
+    for (int i = 0; i < ncells; ++i)
+      {
+      T npoints = *cells++;
+      this->InsertNextCell(npoints);
+      for (int j = 0; j < npoints; ++j)
+        {
+        this->InsertCellPoint(*cells++);
+        }
+      }
+  }
+
+  template<typename T>
+  void CopyFromCountPointsFormat(vtkIdType ncells, T *cells)
+  {
+    this->Initialize();
+    AppendFromCountPointsFormat(ncells, cells);
+  }
+
+  template<typename T>
+  void CopyToCountPointsFormat(T *cells) const
+  {
+    vtkIdType* cellIndex = this->CellIndex->GetPointer(0);
+    for (vtkIdType i = 0; i < this->GetNumberOfCells(); ++i, ++cellIndex)
+      {
+      vtkIdType npts = *(cellIndex + 1) - *cellIndex;
+      vtkIdType* pts = this->Points->GetPointer(*cellIndex);
+      *(cells++) = npts;
+      for (vtkIdType j = 0; j < npts; ++j)
+        {
+        *(cells++) = *(pts++);
+        }
+      }
+  }
+
+  // Description:
+  // Returns 1 if the cell array has cells with the same number of points,
+  // and in that case it sets 'numberOfPoins'. Otherwise it returns 0 and
+  // leaves numberOfpoints unchanged.
+  int IsHomogeneous(int* numberOfPoints) const;
 
   // Description:
   // Reuse list. Reset to initial condition.
@@ -217,7 +259,10 @@ public:
   // Description:
   // Reclaim any extra memory.
   void Squeeze()
-    {this->Ia->Squeeze();}
+  {
+    this->Points->Squeeze();
+    this->CellIndex->Squeeze();
+  }
 
   // Description:
   // Return the memory in kilobytes consumed by this cell array. Used to
@@ -232,10 +277,21 @@ protected:
   vtkCellArray();
   ~vtkCellArray();
 
-  vtkIdType NumberOfCells;
-  vtkIdType InsertLocation;     //keep track of current insertion point
-  vtkIdType TraversalLocation;   //keep track of traversal position
-  vtkIdTypeArray *Ia;
+  // keeps track of the current point location for InsertCellPoint
+  vtkIdType InsertPointLocation;
+  vtkIdType TraversalId;   //keep track of traversal position
+  // Description:
+  // Points of cells. For instance, for two cells c0 with 3 points and
+  // c1 with 4 points this array will contain the following point ids:
+  // (p0_1, p0_2, p0_3, p1_1, p1_2, p1_3, p1_4)
+  vtkIdTypeArray *Points;
+  // Description:
+  // Array that stores, for each cell, the index of the first point of the cell.
+  // This array has an extra entry that points to the end of the Points array
+  // which is used as a sentinel to avoid an extra test.
+  // For instance for two cells c0 with 3 points and c1 with 4 points this array
+  // will contain (0, 3, 7)
+  vtkIdTypeArray* CellIndex;
 
 private:
   vtkCellArray(const vtkCellArray&);  // Not implemented.
@@ -244,42 +300,49 @@ private:
 
 
 //----------------------------------------------------------------------------
-inline vtkIdType vtkCellArray::InsertNextCell(vtkIdType npts,
-                                              const vtkIdType* pts)
+template<typename T>
+inline vtkIdType vtkCellArray::InsertNextCell(vtkIdType npts, const T* pts)
 {
-  vtkIdType i = this->Ia->GetMaxId() + 1;
-  vtkIdType *ptr = this->Ia->WritePointer(i, npts+1);
-
-  for ( *ptr++ = npts, i = 0; i < npts; i++)
+  // add the location of the first point and the sentinel
+  vtkIdType newCellIndex = this->Points->GetNumberOfTuples();
+  vtkIdType *cellIndex = this->CellIndex->WritePointer(
+    this->CellIndex->GetNumberOfTuples() - 1, 2);
+  *cellIndex = newCellIndex;
+  *(cellIndex + 1) = newCellIndex + npts;
+  // add the points
+  vtkIdType *point = this->Points->WritePointer(newCellIndex, npts);
+  for (int i = 0; i < npts; i++)
     {
-    *ptr++ = *pts++;
+    *point++ = *pts++;
     }
-
-  this->NumberOfCells++;
-  this->InsertLocation += npts + 1;
-
-  return this->NumberOfCells - 1;
+  return this->GetNumberOfCells() - 1;
 }
 
 //----------------------------------------------------------------------------
 inline vtkIdType vtkCellArray::InsertNextCell(int npts)
 {
-  this->InsertLocation = this->Ia->InsertNextValue(npts) + 1;
-  this->NumberOfCells++;
-
-  return this->NumberOfCells - 1;
+  // add the location of the first point and the sentinel
+  vtkIdType newCellIndex = this->Points->GetNumberOfTuples();
+  vtkIdType *cellIndex = this->CellIndex->WritePointer(
+    this->CellIndex->GetNumberOfTuples() - 1, 2);
+  *cellIndex = newCellIndex;
+  *(cellIndex + 1) = newCellIndex + npts;
+  this->InsertPointLocation = newCellIndex;
+  return this->GetNumberOfCells() - 1;
 }
 
 //----------------------------------------------------------------------------
 inline void vtkCellArray::InsertCellPoint(vtkIdType id)
 {
-  this->Ia->InsertValue(this->InsertLocation++, id);
+  this->Points->InsertValue(this->InsertPointLocation++, id);
 }
 
 //----------------------------------------------------------------------------
 inline void vtkCellArray::UpdateCellCount(int npts)
 {
-  this->Ia->SetValue(this->InsertLocation-npts-1, npts);
+  vtkIdType *cellIndex = this->CellIndex->GetPointer(
+    this->CellIndex->GetNumberOfTuples() - 2);
+  *(cellIndex + 1) = *cellIndex + npts;
 }
 
 //----------------------------------------------------------------------------
@@ -298,70 +361,99 @@ inline vtkIdType vtkCellArray::InsertNextCell(vtkCell *cell)
 //----------------------------------------------------------------------------
 inline void vtkCellArray::Reset()
 {
-  this->NumberOfCells = 0;
-  this->InsertLocation = 0;
-  this->TraversalLocation = 0;
-  this->Ia->Reset();
+  this->Points->Reset();
+  this->CellIndex->Reset();
+  this->CellIndex->InsertValue(0, 0);
+  this->InsertPointLocation = 0;
+  this->TraversalId = 0;
 }
 
 //----------------------------------------------------------------------------
 inline int vtkCellArray::GetNextCell(vtkIdType& npts, vtkIdType* &pts)
 {
-  if ( this->Ia->GetMaxId() >= 0 &&
-       this->TraversalLocation <= this->Ia->GetMaxId() )
+  if (this->TraversalId < this->GetNumberOfCells())
     {
-    npts = this->Ia->GetValue(this->TraversalLocation++);
-    pts = this->Ia->GetPointer(this->TraversalLocation);
-    this->TraversalLocation += npts;
+    this->GetCellFromId(this->TraversalId++, npts, pts);
     return 1;
     }
-  npts=0;
-  pts=0;
+  npts = 0;
+  pts = 0;
   return 0;
 }
 
+
 //----------------------------------------------------------------------------
-inline void vtkCellArray::GetCell(vtkIdType loc, vtkIdType &npts,
-                                  vtkIdType* &pts)
+inline void vtkCellArray::GetCellFromId(vtkIdType cellId, vtkIdType &npts,
+                                        vtkIdType* &pts) const
 {
-  npts = this->Ia->GetValue(loc++);
-  pts  = this->Ia->GetPointer(loc);
+  vtkIdType* cellIndex = this->CellIndex->GetPointer(cellId);
+  npts = *(cellIndex+1) - *cellIndex;
+  pts = this->Points->GetPointer(*cellIndex);
 }
 
 //----------------------------------------------------------------------------
-inline void vtkCellArray::ReverseCell(vtkIdType loc)
+inline void vtkCellArray::ReverseCellFromId(vtkIdType cellId)
 {
-  int i;
-  vtkIdType tmp;
-  vtkIdType npts=this->Ia->GetValue(loc);
-  vtkIdType *pts=this->Ia->GetPointer(loc+1);
-  for (i=0; i < (npts/2); i++)
+  vtkIdType *cellIndex = this->CellIndex->GetPointer(cellId);
+  vtkIdType npts = *(cellIndex + 1) - *cellIndex;
+  vtkIdType *pts=this->Points->GetPointer(*cellIndex);
+  for (int i=0; i < (npts/2); ++i)
     {
-    tmp = pts[i];
+    vtkIdType tmp = pts[i];
     pts[i] = pts[npts-i-1];
     pts[npts-i-1] = tmp;
     }
 }
 
 //----------------------------------------------------------------------------
-inline void vtkCellArray::ReplaceCell(vtkIdType loc, int npts,
-                                      const vtkIdType *pts)
+inline void vtkCellArray::ReplaceCellFromId(vtkIdType cellId, int npts,
+                                            const vtkIdType *pts)
 {
-  vtkIdType *oldPts=this->Ia->GetPointer(loc+1);
-  for (int i=0; i < npts; i++)
+  vtkIdType *cellIndex = this->CellIndex->GetPointer(cellId);
+  assert (*(cellIndex + 1) - *cellIndex == npts);
+  vtkIdType *oldPts=this->Points->GetPointer(*cellIndex);
+  for (int i=0; i < npts; ++i)
     {
     oldPts[i] = pts[i];
     }
 }
 
 //----------------------------------------------------------------------------
-inline vtkIdType *vtkCellArray::WritePointer(const vtkIdType ncells,
-                                             const vtkIdType size)
+template<>
+inline void vtkCellArray::CopyToCountPointsFormat<vtkIdTypeArray>(
+  vtkIdTypeArray *cells) const
 {
-  this->NumberOfCells = ncells;
-  this->InsertLocation = 0;
-  this->TraversalLocation = 0;
-  return this->Ia->WritePointer(0,size);
+  CopyToCountPointsFormat(
+    cells->WritePointer(0, this->GetNumberOfCells() + this->GetNumberOfPoints()));
 }
+
+//----------------------------------------------------------------------------
+inline vtkIdType vtkCellArray::GetCellPointCountFromId(vtkIdType cellId) const
+{
+  vtkIdType* cellIndex = this->CellIndex->GetPointer(cellId);
+  return *(cellIndex+1) - *cellIndex;
+}
+
+//----------------------------------------------------------------------------
+inline void vtkCellArray::Append(
+  const vtkCellArray *other, vtkIdType startPoint)
+{
+  this->Points->Resize(this->GetNumberOfPoints() +
+                       other->GetNumberOfPoints());
+  this->CellIndex->Resize(this->GetNumberOfCells() +
+                          other->GetNumberOfCells() + 1);
+  for (vtkIdType i = 0; i < other->GetNumberOfCells(); ++i)
+    {
+    vtkIdType nPoints = 0;
+    vtkIdType* points = NULL;
+    other->GetCellFromId(i, nPoints, points);
+    this->InsertNextCell(nPoints);
+    for (vtkIdType j = 0; j < nPoints; ++j)
+      {
+      this->InsertCellPoint(startPoint + points[j]);
+      }
+    }
+}
+
 
 #endif

@@ -173,14 +173,14 @@ int vtkLinearExtrusionFilter::RequestData(
   if ( (ncells=inVerts->GetNumberOfCells()) > 0 )
     {
     newLines = vtkCellArray::New();
-    newLines->Allocate(newLines->EstimateSize(ncells,2));
+    newLines->Reserve(ncells,2);
     }
   // arbitrary initial allocation size
   ncells = inLines->GetNumberOfCells() + inPolys->GetNumberOfCells()/10 +
            inStrips->GetNumberOfCells()/10;
   ncells = (ncells < 100 ? 100 : ncells);
   newStrips = vtkCellArray::New();
-  newStrips->Allocate(newStrips->EstimateSize(ncells,4));
+  newStrips->Reserve(ncells,4);
 
   vtkIdType progressInterval=numPts/10+1;
   int abort=0;

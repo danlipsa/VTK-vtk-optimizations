@@ -1864,7 +1864,7 @@ int vtkDataWriter::WriteCells(ostream *fp, vtkCellArray *cells, const char *labe
     }
 
   int ncells=cells->GetNumberOfCells();
-  int size=cells->GetNumberOfConnectivityEntries();
+  int size=cells->GetNumberOfCells() + cells->GetNumberOfPoints();
 
   if ( ncells < 1 )
     {
@@ -1878,7 +1878,8 @@ int vtkDataWriter::WriteCells(ostream *fp, vtkCellArray *cells, const char *labe
     int j;
     vtkIdType *pts = 0;
     vtkIdType npts = 0;
-    for (cells->InitTraversal(); cells->GetNextCell(npts,pts); )
+    cells->InitTraversal();
+    while (cells->GetNextCell(npts,pts))
       {
       // currently writing vtkIdType as int
       *fp << static_cast<int>(npts) << " ";
@@ -1894,16 +1895,21 @@ int vtkDataWriter::WriteCells(ostream *fp, vtkCellArray *cells, const char *labe
     {
     // swap the bytes if necc
     // currently writing vtkIdType as int
-    vtkIdType *tempArray = cells->GetPointer();
-    int arraySize = cells->GetNumberOfConnectivityEntries();
+    vtkIdType nCells = cells->GetNumberOfCells();
+    int arraySize = cells->GetNumberOfCells() + cells->GetNumberOfPoints();
     int *intArray = new int[arraySize];
-    int i;
-
-    for (i = 0; i < arraySize; i++)
+    vtkIdType loc = 0;
+    vtkIdType *pts = 0;
+    vtkIdType npts = 0;
+    cells->InitTraversal();
+    while (cells->GetNextCell(npts,pts))
       {
-      intArray[i] = tempArray[i];
+      intArray[loc++] = npts;
+      for (int i = 0; i < npts; ++i)
+        {
+        intArray[loc++] = pts[i];
+        }
       }
-
     vtkByteSwap::SwapWrite4BERange(intArray,size,fp);
     delete [] intArray;
     }

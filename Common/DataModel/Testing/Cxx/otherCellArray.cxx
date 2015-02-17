@@ -35,8 +35,6 @@ int TestCellArray(ostream& strm)
   ca->Initialize();
   strm << "ca->GetNumberOfCells() = " << ca->GetNumberOfCells() << endl;
   strm << "ca->GetSize() = " << ca->GetSize() << endl;
-  strm << "ca->GetNumberOfConnectivityEntries() = " << ca->GetNumberOfConnectivityEntries() << endl;
-  strm << "ca->EstimateSize (1000, 3) = " << ca->EstimateSize(1000,3) << endl;
 
   vtkIdType npts = 3;
   vtkIdType pts[3] = {0, 1, 2};
@@ -60,17 +58,17 @@ int TestCellArray(ostream& strm)
 
   strm << "ca->GetNumberOfCells() = " << ca->GetNumberOfCells() << endl;
   strm << "ca->GetSize() = " << ca->GetSize() << endl;
-  strm << "ca->GetNumberOfConnectivityEntries() = " << ca->GetNumberOfConnectivityEntries() << endl;
+  strm << "ca->GetNumberOfPoints() = " << ca->GetNumberOfPoints() << endl;
 
   vtkIdTypeArray *cells = vtkIdTypeArray::New();
   cells->SetNumberOfTuples(12);
   vtkIdType idT[12] = {3, 0, 1, 2, 3, 1, 2, 3, 3, 3, 4, 5};
   cells->SetVoidArray(idT,12,1);
   ca->Allocate(10000);
-  ca->SetCells (3, cells);
+  ca->CopyFromCountPointsFormat (3, cells->GetPointer(0));
   strm << "ca->GetNumberOfCells() = " << ca->GetNumberOfCells() << endl;
   strm << "ca->GetSize() = " << ca->GetSize() << endl;
-  strm << "ca->GetNumberOfConnectivityEntries() = " << ca->GetNumberOfConnectivityEntries() << endl;
+  strm << "ca->GetNumberOfPoints() = " << ca->GetNumberOfPoints() << endl;
 
   ca->Delete();
   cell->Delete();

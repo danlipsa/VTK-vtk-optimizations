@@ -190,19 +190,14 @@ int vtkDecimatePro::RequestData(
   this->SplitState = VTK_STATE_UNSPLIT;
 
   // Lets check to make sure there are only triangles in the input.
-  vtkIdType *pPolys;
-  pPolys = input->GetPolys()->GetPointer();
-  for (i = 0; i < numTris; ++i)
+  int numberOfPoints = 0;
+  if (! input->GetPolys()->IsHomogeneous(&numberOfPoints) || numberOfPoints != 3)
     {
-    if (*pPolys != 3)
-      {
-      vtkErrorMacro("DecimatePro does not accept polygons that are not triangles.");
-      output->CopyStructure(input);
-      output->GetPointData()->PassData(input->GetPointData());
-      output->GetCellData()->PassData(input->GetCellData());
-      return 1;
-      }
-    pPolys += 4;
+    vtkErrorMacro("DecimatePro does not accept polygons that are not triangles.");
+    output->CopyStructure(input);
+    output->GetPointData()->PassData(input->GetPointData());
+    output->GetCellData()->PassData(input->GetCellData());
+    return 1;
     }
 
   // Build cell data structure. Need to copy triangle connectivity data
@@ -415,7 +410,7 @@ int vtkDecimatePro::RequestData(
 
   // Now renumber connectivity
   newPolys = vtkCellArray::New();
-  newPolys->Allocate(newPolys->EstimateSize(3,numTris-totalEliminated));
+  newPolys->Reserve(3, numTris-totalEliminated);
 
   for (cellId=0; cellId < numTris; cellId++)
     {

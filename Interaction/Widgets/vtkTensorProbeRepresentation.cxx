@@ -114,7 +114,7 @@ void vtkTensorProbeRepresentation
 {
   vtkIdType npts=0, *ptIds=0;
 
-  this->Trajectory->GetLines()->GetCell( 0, npts, ptIds );
+  this->Trajectory->GetLines()->GetCellFromId( 0, npts, ptIds );
   vtkPoints *points = this->Trajectory->GetPoints();
 
   vtkIdType minCellId = max( this->ProbeCellId - maxSpeed, 0 );

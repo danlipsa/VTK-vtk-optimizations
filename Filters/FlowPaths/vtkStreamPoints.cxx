@@ -84,7 +84,7 @@ int vtkStreamPoints::RequestData(
     newScalars->Allocate(1000);
     }
   newVerts = vtkCellArray::New();
-  newVerts->Allocate(newVerts->EstimateSize(2*this->NumberOfStreamers,VTK_CELL_SIZE));
+  newVerts->Reserve(2*this->NumberOfStreamers,VTK_CELL_SIZE);
 
   //
   // Loop over all streamers generating points

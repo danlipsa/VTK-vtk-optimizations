@@ -1178,7 +1178,7 @@ void vtkScalarBarActor::ConfigureFrame()
   vtkPoints* frPts = vtkPoints::New();
   frPts->SetNumberOfPoints(5);
   vtkCellArray* frLines = vtkCellArray::New();
-  frLines->Allocate(frLines->EstimateSize(1,5));
+  frLines->Reserve(1,5);
 
   this->FrameActor->SetProperty(this->FrameProperty);
   this->Frame->Initialize();
@@ -1191,7 +1191,7 @@ void vtkScalarBarActor::ConfigureFrame()
   vtkPoints* bgPts = vtkPoints::New();
   bgPts->SetNumberOfPoints(4);
   vtkCellArray* bgPolys = vtkCellArray::New();
-  bgPolys->Allocate(bgPolys->EstimateSize(1,4));
+  bgPolys->Reserve(1,4);
 
   this->BackgroundActor->SetProperty(this->BackgroundProperty);
   this->Background->Initialize();
@@ -1239,8 +1239,7 @@ void vtkScalarBarActor::ConfigureScalarBar()
   this->P->SwatchPts = vtkPoints::New();
   this->P->SwatchPts->SetNumberOfPoints(numPts);
   this->P->Polys = vtkCellArray::New();
-  this->P->Polys->Allocate(
-    this->P->Polys->EstimateSize(this->P->NumSwatches,4));
+  this->P->Polys->Reserve(this->P->NumSwatches,4);
   this->P->SwatchColors = vtkUnsignedCharArray::New();
 
   unsigned int nComponents = ((this->UseOpacity) ? 4 : 3);
@@ -1395,7 +1394,7 @@ void vtkScalarBarActor::ConfigureNanSwatch()
   vtkPoints* pts = vtkPoints::New();
   pts->SetNumberOfPoints(numPts);
   vtkCellArray* polys = vtkCellArray::New();
-  polys->Allocate(polys->EstimateSize(1, 4));
+  polys->Reserve(1, 4);
   vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
   colors->SetNumberOfComponents(4); // RGBA
   colors->SetNumberOfTuples(1);
@@ -1494,7 +1493,7 @@ void vtkScalarBarActor::ConfigureAnnotations()
     vtkPoints* pts = vtkPoints::New();
     pts->SetNumberOfPoints( numPts );
     vtkCellArray* polys = vtkCellArray::New();
-    polys->Allocate( polys->EstimateSize(2 * indexedDenom, 3 ));
+    polys->Reserve(2 * indexedDenom, 3 );
     vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
     colors->SetNumberOfComponents( 4 ); // RGBA
     colors->SetNumberOfTuples( 2 * indexedDenom );
@@ -1805,7 +1804,7 @@ int vtkScalarBarActor::PlaceAnnotationsVertically(
   llcolors->SetNumberOfComponents(3);
   llcolors->Allocate(numNotes);
   lpts->Allocate(2 * numNotes);
-  llines->Allocate(llines->EstimateSize(numNotes, 2));
+  llines->Reserve(numNotes, 2);
   this->P->AnnotationLeaders->Initialize();
   this->P->AnnotationLeaders->SetPoints(lpts);
   this->P->AnnotationLeaders->SetLines(llines);
@@ -2166,7 +2165,7 @@ int vtkScalarBarActor::PlaceAnnotationsHorizontally(
   llcolors->Allocate(numNotes * numNotes);
   // TODO: Improve estimates, but we don't know how many breaks there will be:
   lpts->Allocate(numNotes * numNotes);
-  llines->Allocate(llines->EstimateSize(numNotes * numNotes, 2));
+  llines->Reserve(numNotes * numNotes, 2);
   this->P->AnnotationLeaders->Initialize();
   this->P->AnnotationLeaders->SetPoints(lpts);
   this->P->AnnotationLeaders->SetLines(llines);

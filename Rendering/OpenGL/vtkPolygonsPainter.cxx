@@ -124,12 +124,12 @@ static inline void vtkOpenGLBeginPolyTriangleOrQuad(int aPrimitive,
 #define vtkDrawPolysMacro(prim,glVertFuncs,glCellFuncs,glInitFuncs) \
 { \
   vtkIdType nPts; unsigned short count = 0; \
+  vtkIdType* ptIds;\
   int previousPrimitive = VTK_PP_INVALID_TYPE; \
   glInitFuncs \
-  while (ptIds < endPtIds) \
+  for(int i = 0; i < ca->GetNumberOfCells(); ++i)\
     { \
-    nPts = *ptIds; \
-    ++ptIds; \
+    ca->GetCellFromId(i, nPts, ptIds);\
     vtkOpenGLBeginPolyTriangleOrQuad( prim, previousPrimitive, nPts, device); \
     glCellFuncs \
     while (nPts > 0) \
@@ -217,8 +217,6 @@ int vtkPolygonsPainter::RenderPrimitive(unsigned long idx, vtkDataArray* n,
     {
     edgeflags = ef->GetPointer(0);
     }
-  vtkIdType *ptIds = ca->GetPointer();
-  vtkIdType *endPtIds = ptIds + ca->GetNumberOfConnectivityEntries();
   int ptype = p->GetDataType();
   int ntype = (n)? n->GetDataType() : 0;
   int ttype = (t)? t->GetDataType() : 0;

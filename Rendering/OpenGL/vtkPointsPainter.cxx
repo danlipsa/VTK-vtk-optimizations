@@ -42,13 +42,13 @@ vtkPointsPainter::~vtkPointsPainter()
 #define vtkDrawPointsMacro(glVertFuncs, glInitFuncs) \
 { \
   vtkIdType nPts; \
+  vtkIdType* ptIds;\
   unsigned short count = 0; \
   glInitFuncs \
   device->BeginPrimitive(VTK_POLY_VERTEX);\
-  while (ptIds < endPtIds) \
+  for(int i = 0; i < ca->GetNumberOfCells(); ++i)       \
     { \
-    nPts = *ptIds; \
-    ++ptIds; \
+    ca->GetCellFromId(i, nPts, ptIds);\
     while (nPts > 0) \
       { \
       glVertFuncs \
@@ -97,8 +97,6 @@ int vtkPointsPainter::RenderPrimitive(unsigned long idx, vtkDataArray* n,
     colors = c->GetPointer(0);
     }
 
-  vtkIdType *ptIds = ca->GetPointer();
-  vtkIdType *endPtIds = ptIds + ca->GetNumberOfConnectivityEntries();
   int ptype = p->GetDataType();
   int ntype = (n)? n->GetDataType() : 0;
   // draw all the elements, use fast path if available

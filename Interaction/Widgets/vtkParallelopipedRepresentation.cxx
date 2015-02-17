@@ -334,7 +334,7 @@ vtkParallelopipedRepresentation::vtkParallelopipedRepresentation()
   // The face of the polyhedron
   vtkIdType pts[4] = { 4, 5, 6, 7 };
   vtkCellArray * cells = vtkCellArray::New();
-  cells->Allocate(cells->EstimateSize(1,4));
+  cells->Reserve(1,4);
   cells->InsertNextCell(4,pts); //temporary, replaced later
   this->HexFacePolyData = vtkPolyData::New();
   this->HexFaceMapper   = vtkPolyDataMapper::New();

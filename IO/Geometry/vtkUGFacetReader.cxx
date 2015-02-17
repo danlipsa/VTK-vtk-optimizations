@@ -149,7 +149,7 @@ int vtkUGFacetReader::RequestData(
   newNormals->SetNumberOfComponents(3);
   newNormals->Allocate(3*triEstimate,3*triEstimate);
   newPolys = vtkCellArray::New();
-  newPolys->Allocate(newPolys->EstimateSize(triEstimate,3),triEstimate);
+  newPolys->Reserve(triEstimate,3);
 
   // loop over all facet sets, extracting triangles
   for (setNumber=0; setNumber < numFacetSets; setNumber++)
@@ -220,7 +220,7 @@ int vtkUGFacetReader::RequestData(
     mergedNormals->SetNumberOfComponents(3);
     mergedNormals->Allocate(newNormals->GetNumberOfTuples());
     mergedPolys = vtkCellArray::New();
-    mergedPolys->Allocate(newPolys->GetSize());
+    mergedPolys->Reserve(newPolys);
 
     if ( this->Locator == NULL )
       {

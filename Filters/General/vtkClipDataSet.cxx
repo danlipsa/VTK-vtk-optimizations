@@ -196,8 +196,8 @@ int vtkClipDataSet::RequestData(
   vtkIdType estimatedSize;
   vtkUnsignedCharArray *types[2];
   types[0] = types[1] = 0;
-  vtkIdTypeArray *locs[2];
-  locs[0] = locs[1] = 0;
+  vtkIdTypeArray *ids[2];
+  ids[0] = ids[1] = 0;
   int numOutputs = 1;
 
   outCD[0] = 0;
@@ -262,8 +262,8 @@ int vtkClipDataSet::RequestData(
   conn[0]->InitTraversal();
   types[0] = vtkUnsignedCharArray::New();
   types[0]->Allocate(estimatedSize,estimatedSize/2);
-  locs[0] = vtkIdTypeArray::New();
-  locs[0]->Allocate(estimatedSize,estimatedSize/2);
+  ids[0] = vtkIdTypeArray::New();
+  ids[0]->Allocate(estimatedSize,estimatedSize/2);
   if ( this->GenerateClippedOutput )
     {
     numOutputs = 2;
@@ -272,8 +272,8 @@ int vtkClipDataSet::RequestData(
     conn[1]->InitTraversal();
     types[1] = vtkUnsignedCharArray::New();
     types[1]->Allocate(estimatedSize,estimatedSize/2);
-    locs[1] = vtkIdTypeArray::New();
-    locs[1]->Allocate(estimatedSize,estimatedSize/2);
+    ids[1] = vtkIdTypeArray::New();
+    ids[1]->Allocate(estimatedSize,estimatedSize/2);
     }
   newPoints = vtkPoints::New();
 
@@ -343,9 +343,9 @@ int vtkClipDataSet::RequestData(
           {
           types[i]->Delete();
           }
-        if (locs[i])
+        if (ids[i])
           {
-          locs[i]->Delete();
+          ids[i]->Delete();
           }
         }
       cellScalars->Delete();
@@ -446,7 +446,7 @@ int vtkClipDataSet::RequestData(
           }
         else
           {
-          locs[i]->InsertNextValue(conn[i]->GetTraversalLocation());
+          ids[i]->InsertNextValue(conn[i]->GetTraversalId());
           conn[i]->GetNextCell(npts,pts);
 
           //For each new cell added, got to set the type of the cell
@@ -486,18 +486,18 @@ int vtkClipDataSet::RequestData(
     }
 
   output->SetPoints(newPoints);
-  output->SetCells(types[0], locs[0], conn[0]);
+  output->SetCells(types[0], conn[0]);
   conn[0]->Delete();
   types[0]->Delete();
-  locs[0]->Delete();
+  ids[0]->Delete();
 
   if ( this->GenerateClippedOutput )
     {
     clippedOutput->SetPoints(newPoints);
-    clippedOutput->SetCells(types[1], locs[1], conn[1]);
+    clippedOutput->SetCells(types[1], conn[1]);
     conn[1]->Delete();
     types[1]->Delete();
-    locs[1]->Delete();
+    ids[1]->Delete();
     }
 
   newPoints->Delete();

@@ -494,8 +494,7 @@ vtkDataObject* vtkXdmfHeavyData::ReadUnstructuredGrid(XdmfGrid* xmfGrid)
     vtkCellArray* cells = vtkCellArray::New();
 
     /* Get the pointer */
-    vtkIdType* cells_ptr = cells->WritePointer(
-      numCells, numCells * (1 + numPointsPerCell));
+    cells->Allocate(numCells, numCells * numPointsPerCell);
 
     /* xmfConnections: N p1 p2 ... pN */
     /* i.e. Triangles : 3 0 1 2    3 3 4 5   3 6 7 8 */
@@ -503,10 +502,10 @@ vtkDataObject* vtkXdmfHeavyData::ReadUnstructuredGrid(XdmfGrid* xmfGrid)
     for(vtkIdType cc = 0 ; cc < numCells; cc++ )
       {
       cell_types[cc] = vtk_cell_type;
-      *cells_ptr++ = numPointsPerCell;
+      cells->InsertNextCell(numPointsPerCell);
       for (vtkIdType i = 0 ; i < numPointsPerCell; i++ )
         {
-        *cells_ptr++ = xmfConnections[index++];
+        cells->InsertCellPoint(xmfConnections[index++]);
         }
       }
     ugData->SetCells(cell_types, cells);
@@ -528,7 +527,7 @@ vtkDataObject* vtkXdmfHeavyData::ReadUnstructuredGrid(XdmfGrid* xmfGrid)
     vtkCellArray* cells = vtkCellArray::New();
 
     /* Get the pointer. Make it Big enough ... too big for now */
-    vtkIdType* cells_ptr = cells->WritePointer(numCells, conn_length);
+    cells->Allocate(numCells, conn_length);
 
     /* xmfConnections : N p1 p2 ... pN */
     /* i.e. Triangles : 3 0 1 2    3 3 4 5   3 6 7 8 */
@@ -557,14 +556,12 @@ vtkDataObject* vtkXdmfHeavyData::ReadUnstructuredGrid(XdmfGrid* xmfGrid)
         }
 
       cell_types[cc] = vtk_cell_typeI;
-      *cells_ptr++ = numPointsPerCell;
+      cells->InsertNextCell(numPointsPerCell);
       for(vtkIdType i = 0 ; i < numPointsPerCell; i++ )
         {
-        *cells_ptr++ = xmfConnections[index++];
+        cells->InsertCellPoint(xmfConnections[index++]);
         }
       }
-    // Resize the Array to the Proper Size
-    cells->GetData()->Resize(index-sub);
     ugData->SetCells(cell_types, cells);
     cells->Delete();
     delete [] cell_types;

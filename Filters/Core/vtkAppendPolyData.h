@@ -122,8 +122,6 @@ protected:
   void AppendData(vtkDataArray *dest, vtkDataArray *src, vtkIdType offset);
   void AppendDifferentPoints(vtkDataArray *dest, vtkDataArray *src,
                              vtkIdType offset);
-  vtkIdType *AppendCells(vtkIdType *pDest, vtkCellArray *src,
-                         vtkIdType offset);
 
  private:
   // hide the superclass' AddInput() from the user and the compiler

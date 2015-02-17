@@ -229,7 +229,7 @@ int vtkCleanPolyData::RequestData(
   if ( !this->GetAbortExecute() && inVerts->GetNumberOfCells() > 0 )
     {
     newVerts = vtkCellArray::New();
-    newVerts->Allocate(inVerts->GetSize());
+    newVerts->Reserve(inVerts);
 
     vtkDebugMacro(<<"Starting Verts "<<inCellID);
     for (inVerts->InitTraversal(); inVerts->GetNextCell(npts,pts);
@@ -273,7 +273,7 @@ int vtkCleanPolyData::RequestData(
   if ( !this->GetAbortExecute() && inLines->GetNumberOfCells() > 0 )
     {
     newLines = vtkCellArray::New();
-    newLines->Allocate(inLines->GetSize());
+    newLines->Reserve(inLines);
     outLineData = vtkCellData::New();
     outLineData->CopyAllocate(inputCD);
     //
@@ -339,7 +339,7 @@ int vtkCleanPolyData::RequestData(
   if ( !this->GetAbortExecute() && inPolys->GetNumberOfCells() > 0 )
     {
     newPolys = vtkCellArray::New();
-    newPolys->Allocate(inPolys->GetSize());
+    newPolys->Reserve(inPolys);
     outPolyData = vtkCellData::New();
     outPolyData->CopyAllocate(inputCD);
 
@@ -425,7 +425,7 @@ int vtkCleanPolyData::RequestData(
   if ( !this->GetAbortExecute() && inStrips->GetNumberOfCells() > 0 )
     {
     newStrips = vtkCellArray::New();
-    newStrips->Allocate(inStrips->GetSize());
+    newStrips->Reserve(inStrips);
     outStrpData = vtkCellData::New();
     outStrpData->CopyAllocate(inputCD);
 

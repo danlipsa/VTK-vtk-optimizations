@@ -1231,11 +1231,8 @@ void vtkTecplotReader::GetUnstructuredGridCells( int numberCells,
     vtkErrorMacro( << this->FileName << ": Unknown cell type for a zone." );
     }
 
-  // the storage of each cell begins with the number of points per cell,
-  // followed by a list of point ids representing the cell
-  vtkIdTypeArray * cellInfoList = vtkIdTypeArray::New();
-  cellInfoList->SetNumberOfValues(  ( numCellPnts + 1 ) * numberCells  );
-  vtkIdType *      cellInforPtr = cellInfoList->GetPointer( 0 );
+  vtkCellArray * theCellArray = vtkCellArray::New();
+  theCellArray->Allocate(numberCells, numberCells * numCellPnts);
 
   // type of each cell
   vtkUnsignedCharArray * cellTypeList = vtkUnsignedCharArray::New();
@@ -1252,33 +1249,25 @@ void vtkTecplotReader::GetUnstructuredGridCells( int numberCells,
   for ( int c = 0; c < numberCells; c ++ )
     {
     *cellTypesPtr ++ = theCellType;
-    *cellInforPtr ++ = numCellPnts;
+    theCellArray->InsertNextCell(numCellPnts);
 
     // 1-origin connectivity array
     for ( int j = 0; j < numCellPnts; j ++ )
       {
-      *cellInforPtr ++ = (   theCellType == VTK_VERTEX
-                           ? c
-                           : atoi( this->Internal->GetNextToken().c_str() ) - 1
-                         );
+      theCellArray->InsertCellPoint (
+        theCellType == VTK_VERTEX ? c :
+        atoi( this->Internal->GetNextToken().c_str() ) - 1);
       }
 
     *cellLocatPtr ++ = locateOffset;
     locateOffset    += numCellPnts + 1;
     }
-  cellInforPtr = NULL;
   cellTypesPtr = NULL;
   cellLocatPtr = NULL;
 
-  // create a cell array object to accept the cell info
-  vtkCellArray * theCellArray = vtkCellArray::New();
-  theCellArray->SetCells( numberCells, cellInfoList );
-  cellInfoList->Delete();
-  cellInfoList = NULL;
-
   // create a vtkUnstructuredGrid object and attach the 3 arrays (types, locations,
   // and cells) to it for export.
-  unstrctGrid->SetCells( cellTypeList, cellLocArray, theCellArray );
+  unstrctGrid->SetCells(cellTypeList, theCellArray);
   theCellArray->Delete();
   cellTypeList->Delete();
   cellLocArray->Delete();

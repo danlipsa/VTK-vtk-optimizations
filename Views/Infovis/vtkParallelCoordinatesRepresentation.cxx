@@ -933,11 +933,11 @@ int vtkParallelCoordinatesRepresentation::AllocatePolyData(vtkPolyData* polyData
     {
     vtkCellArray* lines = polyData->GetLines();
     if (!lines ||
-        lines->GetSize() != lines->EstimateSize( numLines,numPointsPerLine ) ||
+        lines->GetNumberOfPoints() != numLines * numPointsPerLine ||
         lines->GetNumberOfCells() != numLines)
       {
       lines = vtkCellArray::New();
-      lines->Allocate(lines->EstimateSize( numLines, numPointsPerLine));
+      lines->Reserve(numLines, numPointsPerLine);
       polyData->SetLines(lines);
       lines->Delete();
 
@@ -967,11 +967,11 @@ int vtkParallelCoordinatesRepresentation::AllocatePolyData(vtkPolyData* polyData
     {
     vtkCellArray* strips = polyData->GetStrips();
     if (!strips ||
-        strips->GetSize() != strips->EstimateSize( numStrips,numPointsPerStrip ) ||
+        strips->GetNumberOfPoints() != numStrips * numPointsPerStrip ||
         strips->GetNumberOfCells() != numStrips)
       {
       strips = vtkCellArray::New();
-      strips->Allocate(strips->EstimateSize( numStrips, numPointsPerStrip));
+      strips->Reserve(numStrips, numPointsPerStrip);
       polyData->SetStrips(strips);
       strips->Delete();
 
@@ -1001,11 +1001,11 @@ int vtkParallelCoordinatesRepresentation::AllocatePolyData(vtkPolyData* polyData
     {
     vtkCellArray* quads = polyData->GetPolys();
     if (!quads ||
-        quads->GetSize() != quads->EstimateSize( numQuads,4 ) ||
+        quads->GetNumberOfPoints() != numQuads * 4 ||
         quads->GetNumberOfCells() != numQuads)
       {
       quads = vtkCellArray::New();
-      quads->Allocate(quads->EstimateSize( numQuads, 4));
+      quads->Reserve(numQuads, 4);
       polyData->SetPolys(quads);
       quads->Delete();
 

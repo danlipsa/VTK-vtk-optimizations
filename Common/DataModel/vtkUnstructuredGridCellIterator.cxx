@@ -38,8 +38,7 @@ void vtkUnstructuredGridCellIterator::PrintSelf(ostream &os, vtkIndent indent)
      << static_cast<void*>(this->CellTypePtr) << endl;
   os << indent << "CellTypeEnd: "
      << static_cast<void*>(this->CellTypeEnd) << endl;
-  os << indent << "ConnectivityBegin: " << this->ConnectivityBegin << endl;
-  os << indent << "ConnectivityPtr: " << this->ConnectivityPtr << endl;
+  os << indent << "ConnectivityId: " << this->ConnectivityId << endl;
   os << indent << "FacesBegin: " << this->FacesBegin<< endl;
   os << indent << "FacesLocsBegin: " << this->FacesLocsBegin << endl;
   os << indent << "FacesLocsPtr: " << this->FacesLocsPtr << endl;
@@ -65,7 +64,8 @@ void vtkUnstructuredGridCellIterator::SetUnstructuredGrid(
     this->CellTypeEnd += cellTypeArray ? cellTypeArray->GetNumberOfTuples() : 0;
 
     // CellArray
-    this->ConnectivityBegin = this->ConnectivityPtr = cellArray->GetPointer();
+    this->CellArray = cellArray;
+    this->ConnectivityId = 0;
 
     // Point
     this->UnstructuredGridPoints = points;
@@ -93,8 +93,7 @@ void vtkUnstructuredGridCellIterator::SetUnstructuredGrid(
     this->FacesBegin = NULL;
     this->FacesLocsBegin = NULL;
     this->FacesLocsPtr = NULL;
-    this->ConnectivityBegin= NULL;
-    this->ConnectivityPtr = NULL;
+    this->ConnectivityId = 0;
     this->UnstructuredGridPoints = NULL;
     }
 
@@ -112,13 +111,13 @@ void vtkUnstructuredGridCellIterator::CatchUpSkippedCells()
     default:
       while (this->SkippedCells > 1)
         {
-        this->ConnectivityPtr += *this->ConnectivityPtr + 1;
+        ++this->ConnectivityId;
         this->SkippedCells--;
         }
       assert(this->SkippedCells == 1);
       // Fall through to first case
     case 1:
-      this->ConnectivityPtr += *this->ConnectivityPtr + 1;
+      ++this->ConnectivityId;
       --this->SkippedCells;
       // fall through to 0 case
     case 0:
@@ -144,7 +143,7 @@ void vtkUnstructuredGridCellIterator::IncrementToNextCell()
 {
   ++this->CellTypePtr;
 
-  // Bookkeeping for ConnectivityPtr
+  // Bookkeeping for ConnectivityId
   ++this->SkippedCells;
 
   // Note that we may be incrementing an invalid pointer here...check
@@ -158,8 +157,7 @@ vtkUnstructuredGridCellIterator::vtkUnstructuredGridCellIterator()
     CellTypeBegin(NULL),
     CellTypePtr(NULL),
     CellTypeEnd(NULL),
-    ConnectivityBegin(NULL),
-    ConnectivityPtr(NULL),
+    ConnectivityId(0),
     FacesBegin(NULL),
     FacesLocsBegin(NULL),
     FacesLocsPtr(NULL),
@@ -178,7 +176,7 @@ void vtkUnstructuredGridCellIterator::ResetToFirstCell()
 {
   this->CellTypePtr = this->CellTypeBegin;
   this->FacesLocsPtr = this->FacesLocsBegin;
-  this->ConnectivityPtr = this->ConnectivityBegin;
+  this->ConnectivityId = 0;
   this->SkippedCells = 0;
 }
 
@@ -192,8 +190,9 @@ void vtkUnstructuredGridCellIterator::FetchCellType()
 void vtkUnstructuredGridCellIterator::FetchPointIds()
 {
   CatchUpSkippedCells();
-  const vtkIdType *connPtr = this->ConnectivityPtr;
-  vtkIdType numCellPoints = *(connPtr++);
+  vtkIdType *connPtr;
+  vtkIdType numCellPoints;
+  this->CellArray->GetCellFromId(this->ConnectivityId, numCellPoints, connPtr);
   this->PointIds->SetNumberOfIds(numCellPoints);
   vtkIdType *cellPtr = this->PointIds->GetPointer(0);
   std::copy(connPtr, connPtr + numCellPoints, cellPtr);

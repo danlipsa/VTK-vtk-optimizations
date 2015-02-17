@@ -637,18 +637,6 @@ vtkSmartPointer<vtkCellArray>
 vtkXMLWriterC_NewCellArray(const char* method, vtkIdType ncells,
                            vtkIdType* cells, vtkIdType cellsSize)
 {
-  // Create a vtkIdTypeArray to reference the cells.
-  vtkSmartPointer<vtkIdTypeArray> array =
-    vtkSmartPointer<vtkIdTypeArray>::New();
-  if(!array)
-    {
-    vtkGenericWarningMacro(
-      "vtkXMLWriterC_" << method << " failed to allocate a vtkIdTypeArray."
-      );
-    return 0;
-    }
-  array->SetArray(cells, ncells*cellsSize, 1);
-
   // Create the cell array.
   vtkSmartPointer<vtkCellArray> cellArray =
     vtkSmartPointer<vtkCellArray>::New();
@@ -659,7 +647,7 @@ vtkXMLWriterC_NewCellArray(const char* method, vtkIdType ncells,
       );
     return 0;
     }
-  cellArray->SetCells(ncells, array);
+  cellArray->CopyFromCountPointsFormat(ncells, cells);
   return cellArray;
 }
 

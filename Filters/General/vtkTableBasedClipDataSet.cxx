@@ -1510,17 +1510,12 @@ void vtkTableBasedClipperVolumeFromVolume::
 
   outCD->CopyAllocate( inCD, ncells );
 
-  vtkIdTypeArray * nlist = vtkIdTypeArray::New();
-  nlist->SetNumberOfValues( conn_size );
-  vtkIdType * nl = nlist->GetPointer( 0 );
+  vtkCellArray * cells = vtkCellArray::New();
+  cells->Allocate (ncells, conn_size);
 
   vtkUnsignedCharArray * cellTypes = vtkUnsignedCharArray::New();
   cellTypes->SetNumberOfValues( ncells );
   unsigned char * ct = cellTypes->GetPointer( 0 );
-
-  vtkIdTypeArray * cellLocations = vtkIdTypeArray::New();
-  cellLocations->SetNumberOfValues( ncells );
-  vtkIdType * cl = cellLocations->GetPointer( 0 );
 
   vtkIdType ids[1024]; // 8 (for hex) should be max, but...
   int current_index = 0;
@@ -1556,12 +1551,11 @@ void vtkTableBasedClipperVolumeFromVolume::
             }
           }
         list += shapesize + 1;
-        *nl ++ = shapesize;
-        *cl ++ = current_index;
+        cells->InsertNextCell(shapesize);
         *ct ++ = vtk_type;
         for ( l = 0; l < shapesize; l ++ )
           {
-          *nl ++ = ids[l];
+          cells->InsertCellPoint(ids[l]);
           }
 
         current_index += shapesize + 1;
@@ -1570,13 +1564,8 @@ void vtkTableBasedClipperVolumeFromVolume::
       }
     }
 
-  vtkCellArray * cells = vtkCellArray::New();
-  cells->SetCells( ncells, nlist );
-  nlist->Delete();
-
-  output->SetCells( cellTypes, cellLocations, cells );
+  output->SetCells( cellTypes, cells );
   cellTypes->Delete();
-  cellLocations->Delete();
   cells->Delete();
 
   delete [] ptLookup;

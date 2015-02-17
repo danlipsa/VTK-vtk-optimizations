@@ -323,7 +323,7 @@ int vtkDiscreteMarchingCubes::RequestData(
   this->Locator->InitPointInsertion (newPts, bounds, estimatedSize);
 
   newPolys = vtkCellArray::New();
-  newPolys->Allocate(newPolys->EstimateSize(estimatedSize,3));
+  newPolys->Reserve(estimatedSize,3);
 
   if (this->ComputeScalars)
     {

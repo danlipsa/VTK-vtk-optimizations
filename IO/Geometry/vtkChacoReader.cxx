@@ -543,20 +543,17 @@ int vtkChacoReader::ReadFile(vtkUnstructuredGrid* output)
     ewgt = eweights;
     }
 
-  vtkIdTypeArray *ca = vtkIdTypeArray::New();
-
+  vtkCellArray *cells = vtkCellArray::New();
   if (idx == NULL)
     {
     // Special case: there are no edges in this graph.  Every
     // vertex will be a cell.
 
-    ca->SetNumberOfValues(2*this->NumberOfVertices);
-    vtkIdType *captr = ca->GetPointer(0);
-
+    cells->Allocate(this->NumberOfVertices, this->NumberOfVertices);
     for (id=0; id<this->NumberOfVertices; id++)
       {
-      *captr++ = 1;  // number of vertices in cell
-      *captr++ = id;  // internal ID of vertex
+      cells->InsertNextCell(1); // number of vertices in cell
+      cells->InsertCellPoint(id);  // internal ID of vertex
 
       if (vw)
         {
@@ -566,19 +563,15 @@ int vtkChacoReader::ReadFile(vtkUnstructuredGrid* output)
           }
         }
       }
-      vtkCellArray *cells = vtkCellArray::New();
-      cells->SetCells(this->NumberOfVertices, ca);
-      output->SetCells(VTK_VERTEX, cells);
-      cells->Delete();
+
+    output->SetCells(VTK_VERTEX, cells);
     }
   else
     {
     // The usual case: most or all vertices are connected to
     // other vertices.
 
-    ca->SetNumberOfValues(3 * this->NumberOfEdges);
-    vtkIdType *captr = ca->GetPointer(0);
-
+    cells->Allocate(this->NumberOfEdges, 2*this->NumberOfEdges);
     vtkIdType edgeNum = -1;
 
     for (id=0; id < this->NumberOfVertices; id++)
@@ -604,9 +597,9 @@ int vtkChacoReader::ReadFile(vtkUnstructuredGrid* output)
             break;
             }
 
-          *captr++ = 2;     // size of cell
-          *captr++ = id;    // first vertex
-          *captr++ = nbor;  // second vertex
+          cells->InsertNextCell(2);      // size of cell
+          cells->InsertCellPoint(id);    // first vertex
+          cells->InsertCellPoint(nbor);  // second vertex
 
           if (ew)
             {
@@ -648,18 +641,14 @@ int vtkChacoReader::ReadFile(vtkUnstructuredGrid* output)
 
     if (retVal)
       {
-      vtkCellArray *cells = vtkCellArray::New();
-      cells->SetCells(this->NumberOfEdges, ca);
       output->SetCells(VTK_LINE, cells);
-      cells->Delete();
       }
     else
       {
       output->Initialize();
       }
     }
-
-  ca->Delete();
+  cells->Delete();
 
   if (retVal == 1)
     {
@@ -1492,4 +1481,3 @@ void vtkChacoReader::FlushLine( FILE   *infile)
     c = getc(infile);
     }
 }
-

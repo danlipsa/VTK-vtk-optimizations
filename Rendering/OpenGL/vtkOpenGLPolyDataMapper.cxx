@@ -368,13 +368,13 @@ static void vtkOpenGLBeginPolyTriangleOrQuad(GLenum aGlFunction,
 #define vtkDrawPointsMacro(ptype,ntype,glVertFuncs,glInitFuncs) \
 { \
   vtkIdType nPts; unsigned short count = 0; \
+  vtkIdType* ptIds;\
   ptype *points = static_cast<ptype *>(voidPoints);     \
   glInitFuncs \
   glBegin(GL_POINTS); \
-  while (ptIds < endPtIds) \
+  for(int i = 0; i < ca->GetNumberOfCells(); ++i)       \
     { \
-    nPts = *ptIds; \
-    ++ptIds; \
+    ca->GetCellFromId(i, nPts, ptIds);\
     while (nPts > 0) \
       { \
       glVertFuncs \
@@ -400,12 +400,12 @@ static void vtkOpenGLBeginPolyTriangleOrQuad(GLenum aGlFunction,
 #define vtkDrawPrimsMacro(ptype,ntype,prim,glVertFuncs,glInitFuncs) \
 { \
   vtkIdType nPts; unsigned short count = 0; \
+  vtkIdType* ptIds;\
   ptype *points = static_cast<ptype *>(voidPoints);    \
-  glInitFuncs \
-  while (ptIds < endPtIds) \
+  glInitFuncs                                           \
+  for (int i = 0; i < ca->GetNumberOfCells(); ++i)      \
     { \
-    nPts = *ptIds; \
-    ++ptIds; \
+    ca->GetCellFromId(i, nPts, ptIds);\
     glBegin(prim); \
     while (nPts > 0) \
       { \
@@ -432,13 +432,13 @@ static void vtkOpenGLBeginPolyTriangleOrQuad(GLenum aGlFunction,
 #define vtkDrawPolysMacro(ptype,ntype,ttype,prim,glVertFuncs,glCellFuncs,glInitFuncs) \
 { \
   vtkIdType nPts; unsigned short count = 0; \
+  vtkIdType* ptIds;\
   ptype *points = static_cast<ptype *>(voidPoints);    \
   GLenum previousGlFunction=GL_INVALID_VALUE; \
   glInitFuncs \
-while (ptIds < endPtIds) \
+  for(int i = 0; i < ca->GetNumberOfCells(); ++i) \
     { \
-    nPts = *ptIds; \
-    ++ptIds; \
+    ca->GetCellFromId(i, nPts, ptIds);\
     vtkOpenGLBeginPolyTriangleOrQuad( prim, previousGlFunction, nPts ); \
     glCellFuncs \
     while (nPts > 0) \
@@ -477,6 +477,7 @@ while (ptIds < endPtIds) \
 #define vtkDrawPolysMacro4Tri(ptype,ntype,ttype,prim,glVertFuncs,glCellFuncs,glInitFuncs) \
 { \
   vtkIdType nPts; unsigned short count = 0; \
+  vtkIdType* ptIds;\
   ptype *points = static_cast<ptype *>(voidPoints);     \
   GLenum previousGlFunction=GL_INVALID_VALUE; \
   glInitFuncs \
@@ -487,10 +488,9 @@ while (ptIds < endPtIds) \
   double quad_points_col[4][4]; \
   double dist_center[4] = {0, 0, 0, 0}; \
   \
-  while (ptIds < endPtIds) \
-    { \
-    nPts = *ptIds; \
-  ++ptIds; \
+  for(int i = 0; i < ca->GetNumberOfCells(); ++i)\
+  {                                            \
+  ca->GetCellFromId(i, nPts, ptIds);           \
   /* If we don't want to draw a QUAD (ex : a triangle nPts = 3) */ \
   if (nPts != 4) { \
   /* Classic method */ \
@@ -599,6 +599,7 @@ while (ptIds < endPtIds) \
 #define vtkDrawPolysMacro4TriTex(ptype,ntype,ttype,prim,glVertFuncs,glCellFuncs,glInitFuncs) \
 { \
   vtkIdType nPts; unsigned short count = 0; \
+  vtkIdType* ptIds;                                     \
   ptype *points = static_cast<ptype *>(voidPoints);     \
   GLenum previousGlFunction=GL_INVALID_VALUE; \
   glInitFuncs \
@@ -609,10 +610,9 @@ double quad_points[4][3]; \
 double quad_points_tex[4]; \
 double dist_center[4] = {0, 0, 0, 0}; \
   \
-while (ptIds < endPtIds) \
-    { \
-    nPts = *ptIds; \
-  ++ptIds; \
+for(int i = 0; i < ca->GetNumberOfCells(); ++i)\
+  {                                            \
+  ca->GetCellFromId(i, nPts, ptIds);           \
   /* If we don't want to draw a QUAD (ex : a triangle nPts = 3) */ \
   if (nPts != 4) { \
   /* Classic method */ \
@@ -716,14 +716,13 @@ while (ptIds < endPtIds) \
 #define vtkDrawStripLinesMacro(ptype,ntype,ttype,prim,glVertFuncs,glCellFuncs,glInitFuncs) \
 { \
   vtkIdType nPts; \
+  vtkIdType* ptIds;\
   ptype *points = static_cast<ptype *>(voidPoints);     \
-  vtkIdType *savedPtIds = ptIds; \
   glInitFuncs \
-  while (ptIds < endPtIds) \
+  for (int i = 0; i < ca->GetNumberOfCells(); ++i) \
     { \
     glBegin(prim); \
-    nPts = *ptIds; \
-    ++ptIds; \
+    ca->GetCellFromId(i, nPts, ptIds); \
     glCellFuncs \
     while (nPts > 0) \
       { \
@@ -732,14 +731,11 @@ while (ptIds < endPtIds) \
       nPts -= 2; \
       } \
     glEnd(); \
-    ptIds += nPts; /* nPts could be 0 or -1 here */ \
     } \
-  ptIds = savedPtIds; \
-  while (ptIds < endPtIds) \
+  for (int i = 0; i < ca->GetNumberOfCells(); ++i)      \
     { \
     glBegin(prim); \
-    nPts = *ptIds; \
-    ++ptIds; \
+    ca->GetCellFromId(i, nPts, ptIds); \
     glCellFuncs \
     ++ptIds; \
     --nPts; \
@@ -750,7 +746,6 @@ while (ptIds < endPtIds) \
       nPts -= 2; \
       } \
     glEnd(); \
-    ptIds += nPts; /* nPts could be 0 or -1 here */ \
     } \
 }
 
@@ -780,8 +775,6 @@ void vtkOpenGLPolyDataMapper::DrawPoints(int idx,
     colors = c->GetPointer(0);
     }
 
-  vtkIdType *ptIds = ca->GetPointer();
-  vtkIdType *endPtIds = ptIds + ca->GetNumberOfConnectivityEntries();
 
   // draw all the elements, use fast path if available
   switch (idx)
@@ -923,8 +916,6 @@ void vtkOpenGLPolyDataMapper::DrawLines(int idx,
     {
     colors = c->GetPointer(0);
     }
-  vtkIdType *ptIds = ca->GetPointer();
-  vtkIdType *endPtIds = ptIds + ca->GetNumberOfConnectivityEntries();
 
   // draw all the elements, use fast path if available
   switch (idx)
@@ -1106,8 +1097,6 @@ void vtkOpenGLPolyDataMapper::DrawPolygons(int idx,
     {
     voidTCoords = t->GetVoidPointer(0);
     }
-  vtkIdType *ptIds = ca->GetPointer();
-  vtkIdType *endPtIds = ptIds + ca->GetNumberOfConnectivityEntries();
 
   // draw all the elements, use fast path if available
   switch (idx)
@@ -1384,8 +1373,6 @@ void vtkOpenGLPolyDataMapper::DrawTStrips(int idx,
     {
     voidTCoords = t->GetVoidPointer(0);
     }
-  vtkIdType *ptIds = ca->GetPointer();
-  vtkIdType *endPtIds = ptIds + ca->GetNumberOfConnectivityEntries();
 
   // draw all the elements, use fast path if available
   switch (idx)
@@ -1458,6 +1445,7 @@ void vtkOpenGLPolyDataMapper::DrawTStrips(int idx,
     {
     int j;
     vtkIdType nPts = 0;
+    vtkIdType* ptIds = NULL;
     unsigned short count = 0;
     unsigned long coloroffset = cellNum;
     for (ca->InitTraversal(); noAbort && ca->GetNextCell(nPts,ptIds);
@@ -1578,8 +1566,6 @@ static void vtkOpenGLPolyDataMapperDrawTStripLines(int idx,
     {
     voidTCoords = t->GetVoidPointer(0);
     }
-  vtkIdType *ptIds = ca->GetPointer();
-  vtkIdType *endPtIds = ptIds + ca->GetNumberOfConnectivityEntries();
 
   // draw all the elements, use fast path if available
   switch (idx)
@@ -1652,6 +1638,7 @@ static void vtkOpenGLPolyDataMapperDrawTStripLines(int idx,
     {
     int j;
     vtkIdType nPts = 0;
+    vtkIdType* ptIds = NULL;
     int count = 0;
     unsigned long coloroffset = cellNum;
     for (ca->InitTraversal(); noAbort && ca->GetNextCell(nPts,ptIds);

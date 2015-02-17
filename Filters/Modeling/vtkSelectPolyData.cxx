@@ -281,7 +281,7 @@ int vtkSelectPolyData::RequestData(
   // mainly for debugging
   numMeshLoopPts = edgeIds->GetNumberOfIds();
   vtkCellArray *selectionEdges=vtkCellArray::New();
-  selectionEdges->Allocate(selectionEdges->EstimateSize(1,numMeshLoopPts),100);
+  selectionEdges->Reserve(1,numMeshLoopPts);
   selectionEdges->InsertNextCell(numMeshLoopPts);
   for (i=0; i<numMeshLoopPts; i++)
     {

@@ -132,7 +132,7 @@ int vtkAppendPolyData::ExecuteAppend(vtkPolyData* output,
   vtkCellArray *inVerts, *newVerts;
   vtkCellArray *inLines, *newLines;
   vtkCellArray *inPolys, *newPolys;
-  vtkIdType sizePolys, numPolys;
+  vtkIdType numPolys;
   vtkCellArray *inStrips, *newStrips;
   vtkIdType numPts, numCells;
   vtkPointData *inPD = NULL;
@@ -146,7 +146,6 @@ int vtkAppendPolyData::ExecuteAppend(vtkPolyData* output,
   vtkDataArray *newPtTensors = NULL;
   int i;
   vtkIdType *pts = 0;
-  vtkIdType *pPolys;
   vtkIdType npts = 0;
   vtkIdType ptId, cellId;
 
@@ -155,7 +154,7 @@ int vtkAppendPolyData::ExecuteAppend(vtkPolyData* output,
   // loop over all data sets, checking to see what point data is available.
   numPts = 0;
   numCells = 0;
-  sizePolys = numPolys = 0;
+  numPolys = 0;
 
   int countPD=0;
   int countCD=0;
@@ -210,11 +209,6 @@ int vtkAppendPolyData::ExecuteAppend(vtkPolyData* output,
       // Although we cannot have cells without points ... let's not nest.
       if (ds->GetNumberOfCells() > 0 )
         {
-        // keep track of the size of the poly cell array
-        if (ds->GetPolys())
-          {
-          sizePolys += ds->GetPolys()->GetNumberOfConnectivityEntries();
-          }
         numCells += ds->GetNumberOfCells();
         // Count the cells of each type.
         // This is used to ensure that cell data is copied at the correct
@@ -302,13 +296,6 @@ int vtkAppendPolyData::ExecuteAppend(vtkPolyData* output,
   newStrips->Allocate(numCells*4);
 
   newPolys = vtkCellArray::New();
-  pPolys = newPolys->WritePointer(numPolys, sizePolys);
-
-  if (!pPolys && sizePolys > 0)
-    {
-    vtkErrorMacro(<<"Memory allocation failed in append filter");
-    return 0;
-    }
 
   // These are created manually for faster execution
   // Uses the properties of the last input
@@ -509,9 +496,15 @@ int vtkAppendPolyData::ExecuteAppend(vtkPolyData* output,
         ++countCD;
 
         // copy the cells
-        pPolys = this->AppendCells(pPolys, inPolys, ptOffset);
+        for (inPolys->InitTraversal(); inPolys->GetNextCell(npts,pts); )
+          {
+          newPolys->InsertNextCell(npts);
+          for (i=0; i < npts; i++)
+            {
+            newPolys->InsertCellPoint(pts[i]+ptOffset);
+            }
+          }
 
-        // These other cell arrays could be made efficient like polys ...
         for (inVerts->InitTraversal(); inVerts->GetNextCell(npts,pts); )
           {
           newVerts->InsertNextCell(npts);
@@ -819,40 +812,6 @@ void vtkAppendPolyData::AppendDifferentPoints(vtkDataArray *dest,
 }
 
 
-//----------------------------------------------------------------------------
-// returns the next pointer in dest
-vtkIdType *vtkAppendPolyData::AppendCells(vtkIdType *pDest, vtkCellArray *src,
-                                          vtkIdType offset)
-{
-  vtkIdType *pSrc, *end, *pNum;
-
-  if (src == NULL)
-    {
-    return pDest;
-    }
-
-  pSrc = src->GetPointer();
-  end = pSrc + src->GetNumberOfConnectivityEntries();
-  pNum = pSrc;
-
-  while (pSrc < end)
-    {
-    if (pSrc == pNum)
-      {
-      // move cell pointer to next cell
-      pNum += 1+*pSrc;
-      // copy the number of cells
-      *pDest++ = *pSrc++;
-      }
-    else
-      {
-      // offset the point index
-      *pDest++ = offset + *pSrc++;
-      }
-    }
-
-  return pDest;
-}
 
 //----------------------------------------------------------------------------
 int vtkAppendPolyData::FillInputPortInformation(int port, vtkInformation *info)

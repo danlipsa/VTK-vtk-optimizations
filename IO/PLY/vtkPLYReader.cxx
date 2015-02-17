@@ -282,7 +282,7 @@ int vtkPLYReader::RequestData(
       // Create a polygonal array
       numPolys = numElems;
       vtkCellArray *polys = vtkCellArray::New();
-      polys->Allocate(polys->EstimateSize(numPolys,3),numPolys/2);
+      polys->Reserve(numPolys,3);
       plyFace face;
       vtkIdType vtkVerts[256];
 

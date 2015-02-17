@@ -207,7 +207,7 @@ void vtkCellLinks::BuildLinks(vtkDataSet *data, vtkCellArray *Connectivity)
   unsigned short *linkLoc;
   vtkIdType npts=0;
   vtkIdType *pts=0;
-  vtkIdType loc = Connectivity->GetTraversalLocation();
+  vtkIdType traversalCellId = Connectivity->GetTraversalId();
 
   // traverse data to determine number of uses of each point
   for (Connectivity->InitTraversal();
@@ -237,7 +237,7 @@ void vtkCellLinks::BuildLinks(vtkDataSet *data, vtkCellArray *Connectivity)
       }
     }
   delete [] linkLoc;
-  Connectivity->SetTraversalLocation(loc);
+  Connectivity->SetTraversalId(traversalCellId);
 }
 
 //----------------------------------------------------------------------------

@@ -1225,40 +1225,22 @@ vtkCellArray *vtkDataObjectToDataSetFilter::ConstructCellArray(
 
   carray = vtkCellArray::New();
 
-  // If the data type is vtkIdType, and the number of components is 1, then
-  // we can directly use the data array without copying it. We just have to
-  // figure out how many cells we have.
-  if ( da->GetDataType() == VTK_ID_TYPE && da->GetNumberOfComponents() == 1
-    && comp == 0 && compRange[0] == 0 && compRange[1] == max )
+  for (i=min; i<max; i+=(npts+1))
     {
-    vtkIdTypeArray *ia = static_cast<vtkIdTypeArray *>(da);
-    for (ncells=i=0; i<ia->GetMaxId(); i+=(npts+1))
+    npts = static_cast<int>(da->GetComponent(i,comp));
+    if ( npts <= 0 )
       {
-      ncells++;
-      npts = ia->GetValue(i);
+      vtkErrorMacro(<<"Error constructing cell array");
+      carray->Delete();
+      return NULL;
       }
-    carray->SetCells(ncells,ia);
-    }
-  // Otherwise, we'll copy the data by inserting it into a vtkCellArray
-  else
-    {
-    for (i=min; i<max; i+=(npts+1))
+    else
       {
-      npts = static_cast<int>(da->GetComponent(i,comp));
-      if ( npts <= 0 )
+      carray->InsertNextCell(npts);
+      for (j=1; j<=npts; j++)
         {
-        vtkErrorMacro(<<"Error constructing cell array");
-        carray->Delete();
-        return NULL;
-        }
-      else
-        {
-        carray->InsertNextCell(npts);
-        for (j=1; j<=npts; j++)
-          {
-          carray->InsertCellPoint(static_cast<int>(
-                                    da->GetComponent(i+j,comp)));
-          }
+        carray->InsertCellPoint(static_cast<int>(
+                                  da->GetComponent(i+j,comp)));
         }
       }
     }

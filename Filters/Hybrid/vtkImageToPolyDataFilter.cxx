@@ -239,7 +239,7 @@ void vtkImageToPolyDataFilter::PixelizeImage(vtkUnsignedCharArray *pixels,
   //
   numCells = dims[0] * dims[1];
   newPolys = vtkCellArray::New();
-  newPolys->Allocate(newPolys->EstimateSize(numCells,4));
+  newPolys->Reserve(numCells,4);
 
   polyColors = vtkUnsignedCharArray::New();
   polyColors->SetNumberOfValues(3*numCells); //for rgb
@@ -287,7 +287,7 @@ void vtkImageToPolyDataFilter::RunLengthImage(vtkUnsignedCharArray *pixels,
   // Setup data
   newPts = vtkPoints::New();
   newPolys = vtkCellArray::New();
-  newPolys->Allocate(newPolys->EstimateSize(dims[0]*dims[1]/10,4));
+  newPolys->Reserve(dims[0]*dims[1]/10,4);
 
   polyColors = vtkUnsignedCharArray::New();
   polyColors->Allocate(3*dims[0]*dims[1]/10); //for rgb
@@ -1189,7 +1189,7 @@ void vtkImageToPolyDataFilter::BuildPolygons(vtkUnsignedCharArray *vtkNotUsed(po
 
   // Create connectivity array for polygon definition
   newPolys = vtkCellArray::New();
-  newPolys->Allocate(newPolys->EstimateSize(numPolys,25));
+  newPolys->Reserve(numPolys,25);
 
   // Loop over all edge points tracking around each polygon
   for (ptId=0; ptId<numPts; ptId++)

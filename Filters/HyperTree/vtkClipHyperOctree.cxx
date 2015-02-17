@@ -77,8 +77,6 @@ vtkClipHyperOctree::vtkClipHyperOctree(vtkImplicitFunction *cf)
   this->Conn[1]=0;
   this->Types[0]=0;
   this->Types[1]=0;
-  this->Locs[0]=0;
-  this->Locs[1]=0;
   this->InCD=0;
   this->OutCD[0]=0;
   this->OutCD[1]=0;
@@ -188,8 +186,6 @@ int vtkClipHyperOctree::RequestData(vtkInformation *vtkNotUsed(request),
   this->Conn[0]->InitTraversal();
   this->Types[0] = vtkUnsignedCharArray::New();
   this->Types[0]->Allocate(estimatedSize,estimatedSize/2);
-  this->Locs[0] = vtkIdTypeArray::New();
-  this->Locs[0]->Allocate(estimatedSize,estimatedSize/2);
   if ( this->GenerateClippedOutput )
     {
     // numOutputs = 2;
@@ -198,8 +194,6 @@ int vtkClipHyperOctree::RequestData(vtkInformation *vtkNotUsed(request),
     this->Conn[1]->InitTraversal();
     this->Types[1] = vtkUnsignedCharArray::New();
     this->Types[1]->Allocate(estimatedSize,estimatedSize/2);
-    this->Locs[1] = vtkIdTypeArray::New();
-    this->Locs[1]->Allocate(estimatedSize,estimatedSize/2);
     }
 
   vtkPoints *newPoints2=0;
@@ -341,25 +335,21 @@ int vtkClipHyperOctree::RequestData(vtkInformation *vtkNotUsed(request),
   this->InCD=0;
   this->Output->SetPoints(newPoints);
   newPoints->Delete();
-  this->Output->SetCells(this->Types[0], this->Locs[0], this->Conn[0]);
+  this->Output->SetCells(this->Types[0], this->Conn[0]);
   this->Conn[0]->Delete();
   this->Conn[0]=0;
   this->Types[0]->Delete();
   this->Types[0]=0;
-  this->Locs[0]->Delete();
-  this->Locs[0]=0;
   this->OutCD[0]=0;
 
   if(this->GenerateClippedOutput)
     {
     this->ClippedOutput->SetPoints(newPoints2);
-    this->ClippedOutput->SetCells(this->Types[1], this->Locs[1],this->Conn[1]);
+    this->ClippedOutput->SetCells(this->Types[1], this->Conn[1]);
     this->Conn[1]->Delete();
     this->Conn[1]=0;
     this->Types[1]->Delete();
     this->Types[1]=0;
-    this->Locs[1]->Delete();
-    this->Locs[1]=0;
     newPoints2->Delete();
     this->Locator2->Delete();
     this->Locator2=0;
@@ -382,7 +372,6 @@ int vtkClipHyperOctree::RequestData(vtkInformation *vtkNotUsed(request),
   assert("post: locator2_is_null" && this->Locator2==0);
   assert("post: types_are_null" && this->Types[0]==0 && this->Types[1]==0);
   assert("post: conn_are_null" && this->Conn[0]==0 && this->Conn[1]==0);
-  assert("post: locs_are_null" && this->Locs[0]==0 && this->Locs[1]==0);
   assert("post: incd_is_null" && this->InCD==0);
   assert("post: outpd_are_null" && this->OutPD[0]==0 && this->OutPD[1]==0);
   assert("post: outcd_are_null" && this->OutCD[0]==0 && this->OutCD[1]==0);
@@ -563,8 +552,6 @@ void vtkClipHyperOctree::ClipNode(vtkHyperOctreeCursor *cursor,
         {
         for (int j=0; j < numNew[i]; j++)
           {
-          this->Locs[i]->InsertNextValue(
-            this->Conn[i]->GetTraversalLocation());
           this->Conn[i]->GetNextCell(npts,pts);
 
           //For each new cell added, got to set the type of the cell
@@ -1096,8 +1083,6 @@ void vtkClipHyperOctree::ClipNode(vtkHyperOctreeCursor *cursor,
           for (j=0; j < numNew; j++)
             {
             ++numSimplices;
-            this->Locs[i]->InsertNextValue(
-              this->Conn[i]->GetTraversalLocation());
             this->Conn[i]->GetNextCell(npts,pts);
 
             //For each new cell added, got to set the type of the cell
@@ -1135,8 +1120,6 @@ void vtkClipHyperOctree::ClipNode(vtkHyperOctreeCursor *cursor,
           this->OutCD[i]->CopyData(this->InCD,cellId,newCellId);
           delete[] pts;
 
-          this->Locs[i]->InsertNextValue(
-            this->Conn[i]->GetTraversalLocation());
           vtkIdType npts=0;
           this->Conn[i]->GetNextCell(npts,pts);
           int cellType = (npts == 3 ? VTK_TRIANGLE :
@@ -1246,8 +1229,6 @@ void vtkClipHyperOctree::ClipNode(vtkHyperOctreeCursor *cursor,
             {
             for (j=0; j < numNew[i]; j++)
               {
-              this->Locs[i]->InsertNextValue(
-                this->Conn[i]->GetTraversalLocation());
               this->Conn[i]->GetNextCell(npts,pts);
 
               //tetrahedra or wedges are generated------------------
@@ -1329,8 +1310,6 @@ void vtkClipHyperOctree::ClipNode(vtkHyperOctreeCursor *cursor,
           {
           for (j=0; j < numNew[i]; j++)
             {
-            this->Locs[i]->InsertNextValue(
-              this->Conn[i]->GetTraversalLocation());
             this->Conn[i]->GetNextCell(npts,pts);
 
             //polygons are generated------------------------------

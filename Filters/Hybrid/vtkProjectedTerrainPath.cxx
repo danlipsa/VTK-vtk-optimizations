@@ -220,7 +220,7 @@ int vtkProjectedTerrainPath::RequestData(vtkInformation *,
 
   //Okay now dump out the edges from the edge list into the output polydata
   vtkCellArray *outLines = vtkCellArray::New();
-  outLines->Allocate(outLines->EstimateSize(this->EdgeList->size(),2));
+  outLines->Reserve(this->EdgeList->size(),2);
   for (EdgeListIterator iter=this->EdgeList->begin();
        iter != this->EdgeList->end();
        ++iter)

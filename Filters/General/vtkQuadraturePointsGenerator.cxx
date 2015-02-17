@@ -278,20 +278,15 @@ int vtkQuadraturePointsGenerator::Generate(
   pdOut->SetPoints(p);
   p->Delete();
   // Generate vertices at the quadrature points
-  vtkIdTypeArray *va = vtkIdTypeArray::New();
-  va->SetNumberOfTuples(2* nVerts );
-  vtkIdType *verts = va->GetPointer(0);
+  vtkCellArray *cells = vtkCellArray::New();
+  cells->Allocate(nVerts, nVerts);
   for (int i = 0; i < nVerts; ++i)
     {
-    verts[0] = 1;
-    verts[1] = i;
-    verts += 2;
+    cells->InsertNextCell(1);
+    cells->InsertCellPoint(i);
     }
-  vtkCellArray *cells = vtkCellArray::New();
-  cells->SetCells(static_cast<vtkIdType> (nVerts), va);
   pdOut->SetVerts(cells);
   cells->Delete();
-  va->Delete();
 
   // then loop over all fields to map the field array to the points
   int nArrays = usgIn->GetFieldData()->GetNumberOfArrays();

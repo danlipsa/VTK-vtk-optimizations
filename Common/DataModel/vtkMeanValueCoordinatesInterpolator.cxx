@@ -30,12 +30,13 @@ vtkStandardNewMacro(vtkMeanValueCoordinatesInterpolator);
 // Special class that can iterate over different type of triangle representations
 class vtkMVCTriIterator
 {
-public:
   vtkIdType Offset;
   vtkIdType *Tris;
   vtkIdType *Current;
   vtkIdType NumberOfTriangles;
   vtkIdType Id;
+
+public:
 
   vtkMVCTriIterator(vtkIdType numIds,vtkIdType offset,vtkIdType *t)
     {
@@ -51,42 +52,75 @@ public:
       this->Id++;
       return this->Current;
     }
+  const vtkIdType* GetCurrentPoints() const
+  {
+    return this->Current;
+  }
+
+  vtkIdType GetNumberOfCells() const
+  {
+    return this->NumberOfTriangles;
+  }
+  vtkIdType GetCellId() const
+  {
+    return this->Id;
+  }
 };
 
-// Special class that can iterate over different type of polygon representations
-class vtkMVCPolyIterator
+class vtkCellArrayIterator
 {
-public:
-  vtkIdType CurrentPolygonSize;
-  vtkIdType *Polygons;
-  vtkIdType *Current;
-  vtkIdType NumberOfPolygons;
-  vtkIdType Id;
-  vtkIdType MaxPolygonSize;
+  vtkCellArray* CellArray;
 
-  vtkMVCPolyIterator(vtkIdType numPolys, vtkIdType maxCellSize, vtkIdType *t)
-    {
-      this->CurrentPolygonSize = t[0];
-      this->Polygons = t;
-      this->Current = t+1;
-      this->NumberOfPolygons = numPolys;
-      this->Id = 0;
-      this->MaxPolygonSize = maxCellSize;
-    }
+public:
+
+  vtkCellArrayIterator (vtkCellArray* cellsArray)
+  {
+    this->CellArray = cellsArray;
+    this->CellArray->InitTraversal();
+  }
   vtkIdType* operator++()
-    {
-      this->Current += this->CurrentPolygonSize + 1;
-      this->Id++;
-      if (this->Id < this->NumberOfPolygons)
-        {
-        this->CurrentPolygonSize = *(this->Current-1);
-        }
-      else
-        {
-        this->CurrentPolygonSize = VTK_ID_MAX;
-        }
-      return this->Current;
-    }
+  {
+    vtkIdType npts;
+    vtkIdType* pts;
+    this->CellArray->SetTraversalId(this->CellArray->GetTraversalId() + 1);
+    if (this->CellArray->GetTraversalId() < this->CellArray->GetNumberOfCells())
+      {
+      this->CellArray->GetNextCell(npts, pts);
+      this->CellArray->SetTraversalId(this->CellArray->GetTraversalId() - 1);
+      return pts;
+      }
+    else
+      {
+      return NULL;
+      }
+  }
+  const vtkIdType* GetCurrentPoints() const
+  {
+    vtkIdType npts;
+    vtkIdType* pts;
+    this->CellArray->GetCellFromId(
+      this->CellArray->GetTraversalId(), npts, pts);
+    return pts;
+  }
+
+  void GetCurrentCell(vtkIdType& npts, vtkIdType*& pts) const
+  {
+    this->CellArray->GetCellFromId(this->CellArray->GetTraversalId(), npts, pts);
+  }
+
+  int GetMaxCellSize() const
+  {
+    return this->CellArray->GetMaxCellSize();
+  }
+
+  vtkIdType GetNumberOfCells() const
+  {
+    return this->CellArray->GetNumberOfCells();
+  }
+  vtkIdType GetCellId() const
+  {
+    return this->CellArray->GetTraversalId();
+  }
 };
 
 //----------------------------------------------------------------------------
@@ -107,9 +141,9 @@ vtkMeanValueCoordinatesInterpolator::
 // This class actually implements the algorithm.
 // (Note: the input point type should be float or double, but this is
 // not enfored.)
-template <class T>
+template <class T, class PolyIterator>
 void vtkComputeMVCWeightsForPolygonMesh(double x[3], T *pts, vtkIdType npts,
-                                  vtkMVCPolyIterator& iter, double *weights)
+                                        PolyIterator& iter, double *weights)
 {
   if (!npts)
     {
@@ -152,14 +186,15 @@ void vtkComputeMVCWeightsForPolygonMesh(double x[3], T *pts, vtkIdType npts,
     }
 
   // Now loop over all triangle to compute weights
-  double **u =  new double* [iter.MaxPolygonSize];
-  double *alpha = new double [iter.MaxPolygonSize];
-  double *theta =  new double [iter.MaxPolygonSize];
-  vtkIdType *poly = iter.Current;
-  while ( iter.Id < iter.NumberOfPolygons)
+  int maxPolygonSize = iter.GetMaxCellSize();
+  double **u =  new double* [maxPolygonSize];
+  double *alpha = new double [maxPolygonSize];
+  double *theta =  new double [maxPolygonSize];
+  vtkIdType *poly = 0;
+  vtkIdType nPolyPts = 0;
+  iter.GetCurrentCell(nPolyPts, poly);
+  while ( iter.GetCellId() < iter.GetNumberOfCells())
     {
-    int nPolyPts = iter.CurrentPolygonSize;
-
     for (int j = 0; j < nPolyPts; j++)
       {
       u[j] = uVec + 3*poly[j];
@@ -362,9 +397,9 @@ void vtkComputeMVCWeightsForPolygonMesh(double x[3], T *pts, vtkIdType npts,
 // This class actually implements the algorithm.
 // (Note: the input point type should be float or double, but this is
 // not enfored.)
-template <class T>
+template <class T, class TriIterator>
 void vtkComputeMVCWeightsForTriangleMesh(double x[3], T *pts, vtkIdType npts,
-                                    vtkMVCTriIterator& iter, double *weights)
+                                         TriIterator& iter, double *weights)
 {
   //Points are organized {(x,y,z), (x,y,z), ....}
   //Tris are organized {(i,j,k), (i,j,k), ....}
@@ -410,12 +445,12 @@ void vtkComputeMVCWeightsForTriangleMesh(double x[3], T *pts, vtkIdType npts,
     }
 
   // Now loop over all triangle to compute weights
-  while ( iter.Id < iter.NumberOfTriangles)
+  while ( iter.GetCellId() < iter.GetNumberOfCells())
     {
     // vertex id
-    vtkIdType pid0 = iter.Current[0];
-    vtkIdType pid1 = iter.Current[1];
-    vtkIdType pid2 = iter.Current[2];
+    vtkIdType pid0 = iter.GetCurrentPoints()[0];
+    vtkIdType pid1 = iter.GetCurrentPoints()[1];
+    vtkIdType pid2 = iter.GetCurrentPoints()[2];
 
     // unit vector
     double *u0 = uVec + 3*pid0;
@@ -592,20 +627,15 @@ void vtkMeanValueCoordinatesInterpolator::ComputeInterpolationWeights(
       }
     }
 
-  vtkIdType *t = cells->GetPointer();
-
+  vtkCellArrayIterator iter(cells);
   if (isATriangleMesh)
     {
     // Below the vtkCellArray has four entries per triangle {(3,i,j,k), (3,i,j,k), ....}
-    vtkMVCTriIterator iter(cells->GetNumberOfConnectivityEntries(), 4, t);
-
     vtkMeanValueCoordinatesInterpolator::
       ComputeInterpolationWeightsForTriangleMesh(x,pts,iter,weights);
     }
   else
     {
-    vtkMVCPolyIterator iter(cells->GetNumberOfCells(), cells->GetMaxCellSize(), t);
-
     vtkMeanValueCoordinatesInterpolator::
       ComputeInterpolationWeightsForPolygonMesh(x,pts,iter,weights);
     }
@@ -614,9 +644,10 @@ void vtkMeanValueCoordinatesInterpolator::ComputeInterpolationWeights(
 }
 
 //----------------------------------------------------------------------------
+template<typename TriangleIterator>
 void vtkMeanValueCoordinatesInterpolator::
-ComputeInterpolationWeightsForTriangleMesh(double x[3], vtkPoints *pts,
-                              vtkMVCTriIterator& iter, double *weights)
+ComputeInterpolationWeightsForTriangleMesh(
+  double x[3], vtkPoints *pts, TriangleIterator& iter, double *weights)
 {
   // Check the input
   if ( !pts || !weights)
@@ -647,9 +678,10 @@ ComputeInterpolationWeightsForTriangleMesh(double x[3], vtkPoints *pts,
 }
 
 //----------------------------------------------------------------------------
+template<typename PolyIterator>
 void vtkMeanValueCoordinatesInterpolator::
 ComputeInterpolationWeightsForPolygonMesh(double x[3], vtkPoints *pts,
-                            vtkMVCPolyIterator& iter, double *weights)
+                                          PolyIterator& iter, double *weights)
 {
   // Check the input
   if ( !pts || !weights)

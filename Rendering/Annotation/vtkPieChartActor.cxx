@@ -572,7 +572,7 @@ int vtkPieChartActor::PlaceAxes(vtkViewport *viewport, int* vtkNotUsed(size))
 
   double *color, delTheta;
   vtkIdType numDivs;
-  polys->Allocate(polys->EstimateSize(this->N,12));
+  polys->Reserve(this->N,12);
 
   pIds[0] = pts->InsertNextPoint(this->Center);
   for (i=0; i<this->N; i++)

@@ -96,8 +96,6 @@ int vtkGenericDataSetTessellator::RequestData(
   // loop over region
   vtkUnsignedCharArray *types = vtkUnsignedCharArray::New();
   types->Allocate(numCells);
-  vtkIdTypeArray *locs = vtkIdTypeArray::New();
-  locs->Allocate(numCells);
   vtkCellArray *conn = vtkCellArray::New();
   conn->Allocate(numCells);
 
@@ -200,7 +198,6 @@ int vtkGenericDataSetTessellator::RequestData(
 
     for (i=0; i < numNew; i++)
       {
-      locs->InsertNextValue(conn->GetTraversalLocation());
       conn->GetNextCell(npts,pts); //side effect updates traversal location
       } //insert each new cell
     } //for all cells
@@ -214,7 +211,7 @@ int vtkGenericDataSetTessellator::RequestData(
     }
 
   output->SetPoints(newPts);
-  output->SetCells(types, locs, conn);
+  output->SetCells(types, conn);
 
   if (!this->Merging && this->Locator)
     {
@@ -226,7 +223,6 @@ int vtkGenericDataSetTessellator::RequestData(
 
   newPts->Delete();
   types->Delete();
-  locs->Delete();
   conn->Delete();
 
   output->Squeeze();

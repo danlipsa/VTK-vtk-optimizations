@@ -190,7 +190,7 @@ int vtkPolyDataSilhouette::RequestData(
     }
 
   vtkIdType nPolys = input->GetNumberOfPolys();
-  vtkIdTypeArray* polysArray = input->GetPolys()->GetData();
+  vtkCellArray* polysCellArray = input->GetPolys();
   vtkPoints* inPoints = input->GetPoints();
 
   if( input->GetMTime() > this->PreComp->mtime.GetMTime() )
@@ -200,11 +200,11 @@ int vtkPolyDataSilhouette::RequestData(
     this->PreComp->mtime.Modified();
     this->PreComp->edges.clear();
 
-    vtkIdType* polys = polysArray->GetPointer(0);
-
     for(vtkIdType i=0;i<nPolys;i++)
       {
-      int np = *(polys); ++polys;
+      vtkIdType np = 0;
+      vtkIdType* polys = NULL;
+      polysCellArray->GetCellFromId(i, np, polys);
       double normal[3];
       vtkPolygon::ComputeNormal(inPoints, np, polys, normal);
 
@@ -238,7 +238,6 @@ int vtkPolyDataSilhouette::RequestData(
           tn.rightNormal[2] = normal[2];
           }
         }
-      polys += np;
       }
 
     if( this->PreComp->edgeFlag != 0 ) delete [] this->PreComp->edgeFlag;
@@ -309,30 +308,27 @@ int vtkPolyDataSilhouette::RequestData(
 
 
     // build output data set (lines)
-    vtkIdTypeArray* la = vtkIdTypeArray::New();
-    la->SetNumberOfValues( 3*silhouetteEdges );
-    vtkIdType* laPtr = la->WritePointer(0,3*silhouetteEdges);
-
-    i=0;
-    silhouetteEdges=0;
-    for(std::map<vtkOrderedEdge,vtkTwoNormals>::iterator it=this->PreComp->edges.begin(); it!=this->PreComp->edges.end(); ++it)
-      {
-      if( this->PreComp->edgeFlag[i] )
-        {
-        laPtr[ silhouetteEdges*3+0 ] = 2 ;
-        laPtr[ silhouetteEdges*3+1 ] = it->first.p1 ;
-        laPtr[ silhouetteEdges*3+2 ] = it->first.p2 ;
-        ++silhouetteEdges;
-        }
-      ++i;
-      }
-
     if( this->PreComp->lines == 0 )
       {
       this->PreComp->lines = vtkCellArray::New();
       }
-    this->PreComp->lines->SetCells( silhouetteEdges, la );
-    la->Delete();
+    vtkCellArray* linesCellArray = this->PreComp->lines;
+    linesCellArray->Initialize();
+    linesCellArray->Reserve(silhouetteEdges, 2);
+
+    i=0;
+    for(std::map<vtkOrderedEdge,
+          vtkTwoNormals>::iterator it=this->PreComp->edges.begin();
+        it!=this->PreComp->edges.end(); ++it)
+      {
+      if( this->PreComp->edgeFlag[i] )
+        {
+        linesCellArray->InsertNextCell(2);
+        linesCellArray->InsertCellPoint(it->first.p1);
+        linesCellArray->InsertCellPoint(it->first.p2);
+        }
+      ++i;
+      }
     }
 
   output->Initialize();
@@ -458,4 +454,3 @@ void vtkPolyDataSilhouette::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "EnableFeatureAngle: " << this->EnableFeatureAngle << "\n";
   os << indent << "BorderEdges: " << this->BorderEdges << "\n";
 }
-

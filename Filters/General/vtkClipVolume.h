@@ -200,11 +200,11 @@ private:
   vtkIdType             NumberOfCells;
   vtkCellArray          *Connectivity;
   vtkUnsignedCharArray  *Types;
-  vtkIdTypeArray        *Locations;
+  vtkIdTypeArray        *Ids;
   vtkIdType             NumberOfClippedCells;
   vtkCellArray          *ClippedConnectivity;
   vtkUnsignedCharArray  *ClippedTypes;
-  vtkIdTypeArray        *ClippedLocations;
+  vtkIdTypeArray        *ClippedIds;
 
 private:
   vtkClipVolume(const vtkClipVolume&);  // Not implemented.

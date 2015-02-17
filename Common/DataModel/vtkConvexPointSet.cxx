@@ -84,14 +84,14 @@ vtkCell *vtkConvexPointSet::GetFace(int faceId)
   int numCells = this->BoundaryTris->GetNumberOfCells();
   if ( faceId < 0 || faceId >=numCells ) {return NULL;}
 
-  vtkIdType *cells = this->BoundaryTris->GetPointer();
-
   // Each triangle has three points plus number of points
-  vtkIdType *cptr = cells + 4*faceId;
+  vtkIdType *cptr = NULL;
+  vtkIdType npts;
+  this->BoundaryTris->GetCellFromId(faceId, npts, cptr);
   for (int i=0; i<3; i++)
     {
-    this->Triangle->PointIds->SetId(i,this->PointIds->GetId(cptr[i+1]));
-    this->Triangle->Points->SetPoint(i,this->Points->GetPoint(cptr[i+1]));
+    this->Triangle->PointIds->SetId(i,this->PointIds->GetId(cptr[i]));
+    this->Triangle->Points->SetPoint(i,this->Points->GetPoint(cptr[i]));
     }
 
   return this->Triangle;

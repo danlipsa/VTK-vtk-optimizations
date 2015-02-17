@@ -176,13 +176,8 @@ int vtkPolyDataReader::RequestData(
           }
 
         tempArray = new int[size];
-        idArray = verts->WritePointer(ncells, size);
         this->ReadCells(size, tempArray);
-//        this->ReadCells(size, verts->WritePointer(ncells,size));
-        for (i = 0; i < size; i++)
-          {
-          idArray[i] = tempArray[i];
-          }
+        verts->CopyFromCountPointsFormat(ncells, tempArray);
         output->SetVerts(verts);
         verts->Delete();
         delete [] tempArray;
@@ -199,14 +194,8 @@ int vtkPolyDataReader::RequestData(
           return 1;
           }
         tempArray = new int[size];
-        idArray = lines->WritePointer(ncells, size);
         this->ReadCells(size, tempArray);
-//        this->ReadCells(size, lines->WritePointer(ncells,size));
-        for (i = 0; i < size; i++)
-          {
-          idArray[i] = tempArray[i];
-          }
-
+        lines->CopyFromCountPointsFormat(ncells, tempArray);
         output->SetLines(lines);
         lines->Delete();
         delete [] tempArray;
@@ -224,13 +213,8 @@ int vtkPolyDataReader::RequestData(
           }
 
         tempArray = new int[size];
-        idArray = polys->WritePointer(ncells, size);
         this->ReadCells(size, tempArray);
-//        this->ReadCells(size, polys->WritePointer(ncells,size));
-        for (i = 0; i < size; i++)
-          {
-          idArray[i] = tempArray[i];
-          }
+        polys->CopyFromCountPointsFormat(ncells, tempArray);
         output->SetPolys(polys);
         polys->Delete();
         delete [] tempArray;
@@ -248,13 +232,8 @@ int vtkPolyDataReader::RequestData(
           }
 
         tempArray = new int[size];
-        idArray = tris->WritePointer(ncells, size);
         this->ReadCells(size, tempArray);
-//        this->ReadCells(size, tris->WritePointer(ncells,size));
-        for (i = 0; i < size; i++)
-          {
-          idArray[i] = tempArray[i];
-          }
+        tris->CopyFromCountPointsFormat(ncells, tempArray);
         output->SetStrips(tris);
         tris->Delete();
         delete [] tempArray;

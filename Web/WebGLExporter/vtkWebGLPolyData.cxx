@@ -409,8 +409,17 @@ void vtkWebGLPolyData::GetLines(vtkTriangleFilter* polydata, vtkActor* actor, in
   // Index
   //Array of 3 Values. [#number of index, i1, i2]
   //Discarting the first value
-  int* index = new int[lines->GetData()->GetSize()*2/3];
-  for (int i=0; i< lines->GetData()->GetSize(); i++) if (i%3 != 0) index[i*2/3] = lines->GetData()->GetValue(i);
+  // index is an array of ints otherwise we could
+  // pass directly the array of points from vtkCellArray
+  int* index = new int[lines->GetNumberOfPoints()];
+  for (int i=0; i< lines->GetNumberOfCells(); i++)
+    {
+    vtkIdType npts = 0;
+    vtkIdType* pts = NULL;
+    lines->GetCellFromId(i, npts, pts);
+    index[2 * i] = pts[0];
+    index[2 * i + 1] = pts[1];
+    }
   // Point
   double point[3];
   float* points = new float[polydata->GetOutput(0)->GetNumberOfPoints()*3];
@@ -425,7 +434,8 @@ void vtkWebGLPolyData::GetLines(vtkTriangleFilter* polydata, vtkActor* actor, in
   unsigned char* color = new unsigned char[polydata->GetOutput(0)->GetNumberOfPoints()*4];
   this->GetColorsFromPolyData(color, polydata->GetOutput(0), actor);
 
-  object->SetLine(points, polydata->GetOutput(0)->GetNumberOfPoints(), index, lines->GetData()->GetSize()*2/3, color, lineMaxSize);
+  object->SetLine(points, polydata->GetOutput(0)->GetNumberOfPoints(), index,
+                  lines->GetNumberOfPoints(), color, lineMaxSize);
   }
 
 void vtkWebGLPolyData::SetPoints(float *points, int numberOfPoints, unsigned char *colors, int maxSize)
@@ -528,7 +538,6 @@ void vtkWebGLPolyData::GetPolygonsFromPointData(vtkTriangleFilter* polydata, vtk
 
   vtkCellArray* poly = data->GetPolys();
   vtkPointData* point = data->GetPointData();
-  vtkIdTypeArray* ndata = poly->GetData();
   vtkDataSetAttributes* attr = (vtkDataSetAttributes*)point;
 
   //Vertices
@@ -536,10 +545,17 @@ void vtkWebGLPolyData::GetPolygonsFromPointData(vtkTriangleFilter* polydata, vtk
   for (int i=0; i<data->GetNumberOfPoints()*3; i++) vertices[i] = data->GetPoint(i/3)[i%3];
   //Index
   // ndata contain 4 values for the normal: [number of values per index, index[3]]
-  // We dont need the first value
-  int* indexes = new int[ndata->GetSize()*3/4];
-  for (int i=0; i<ndata->GetSize(); i++)
-    if (i%4 != 0) indexes[i*3/4] = ndata->GetValue(i);
+  // We dont need the number of values
+  int* indexes = new int[poly->GetNumberOfPoints()];
+  for (int i=0; i<poly->GetNumberOfCells(); i++)
+    {
+    vtkIdType npts;
+    vtkIdType* pts;
+    poly->GetCellFromId(i, npts, pts);
+    indexes[3*i] = pts[0];
+    indexes[3*i+1] = pts[1];
+    indexes[3*i+2] = pts[2];
+    }
   //Normal
   float* normal = new float[attr->GetNormals()->GetSize()];
   for (int i=0; i< attr->GetNormals()->GetSize(); i++) normal[i] = attr->GetNormals()->GetComponent(0, i);
@@ -554,7 +570,8 @@ void vtkWebGLPolyData::GetPolygonsFromPointData(vtkTriangleFilter* polydata, vtk
     for (int i=0; i<attr->GetTCoords()->GetSize(); i++) tcoord[i] = attr->GetTCoords()->GetComponent(0, i);
     }
 
-  object->SetMesh(vertices, data->GetNumberOfPoints(), indexes, ndata->GetSize()*3/4, normal, color, tcoord, maxSize);
+  object->SetMesh(vertices, data->GetNumberOfPoints(), indexes,
+                  poly->GetNumberOfPoints(), normal, color, tcoord, maxSize);
   polynormals->Delete();
   }
 

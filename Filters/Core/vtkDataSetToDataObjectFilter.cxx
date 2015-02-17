@@ -20,6 +20,7 @@
 #include "vtkFloatArray.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
+#include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
 #include "vtkPolyData.h"
@@ -166,26 +167,42 @@ int vtkDataSetToDataObjectFilter::RequestData(
       if ( pd->GetVerts()->GetNumberOfCells() > 0 )
         {
         ca = pd->GetVerts();
-        ca->GetData()->SetName("Verts");
-        fd->AddArray( ca->GetData() );
+        vtkNew<vtkIdTypeArray> verts;
+        ca->CopyToCountPointsFormat(
+          verts->WritePointer(
+            0, ca->GetNumberOfCells() + ca->GetNumberOfPoints()));
+        verts->SetName("Verts");
+        fd->AddArray(verts.GetPointer());
         }
       if ( pd->GetLines()->GetNumberOfCells() > 0 )
         {
         ca = pd->GetLines();
-        ca->GetData()->SetName("Lines");
-        fd->AddArray( ca->GetData() );
+        vtkNew<vtkIdTypeArray> lines;
+        ca->CopyToCountPointsFormat(
+          lines->WritePointer(
+            0, ca->GetNumberOfCells() + ca->GetNumberOfPoints()));
+        lines->SetName("Lines");
+        fd->AddArray(lines.GetPointer());
         }
       if ( pd->GetPolys()->GetNumberOfCells() > 0 )
         {
         ca = pd->GetPolys();
-        ca->GetData()->SetName("Polys");
-        fd->AddArray( ca->GetData() );
+        vtkNew<vtkIdTypeArray> polys;
+        ca->CopyToCountPointsFormat(
+          polys->WritePointer(
+            0, ca->GetNumberOfCells() + ca->GetNumberOfPoints()));
+        polys->SetName("Polys");
+        fd->AddArray(polys.GetPointer());
         }
       if ( pd->GetStrips()->GetNumberOfCells() > 0 )
         {
         ca = pd->GetStrips();
-        ca->GetData()->SetName("Strips");
-        fd->AddArray( ca->GetData() );
+        vtkNew<vtkIdTypeArray> strips;
+        ca->CopyToCountPointsFormat(
+          strips->WritePointer(
+            0, ca->GetNumberOfCells() + ca->GetNumberOfPoints()));
+        strips->SetName("Strips");
+        fd->AddArray(strips.GetPointer());
         }
       }
 
@@ -236,8 +253,12 @@ int vtkDataSetToDataObjectFilter::RequestData(
       vtkCellArray *ca=static_cast<vtkUnstructuredGrid *>(input)->GetCells();
       if ( ca != NULL && ca->GetNumberOfCells() > 0 )
         {
-        ca->GetData()->SetName("Cells");
-        fd->AddArray( ca->GetData() );
+        vtkNew<vtkIdTypeArray> cells;
+        ca->CopyToCountPointsFormat(
+          cells->WritePointer(
+            0, ca->GetNumberOfCells() + ca->GetNumberOfPoints()));
+        cells->SetName("Cells");
+        fd->AddArray(cells.GetPointer());
 
         vtkIdType numCells=input->GetNumberOfCells();
         vtkIntArray *types=vtkIntArray::New();

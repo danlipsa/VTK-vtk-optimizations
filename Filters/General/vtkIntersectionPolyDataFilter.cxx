@@ -332,8 +332,8 @@ int vtkIntersectionPolyDataFilter::Impl
 
     vtkSmartPointer< vtkCellArray > newPolys =
       vtkSmartPointer< vtkCellArray >::New();
+    newPolys->Reserve(cells->GetNumberOfCells(),3);
 
-    newPolys->EstimateSize(cells->GetNumberOfCells(),3);
     output->SetPolys(newPolys);
 
     vtkSmartPointer< vtkIdList > edgeNeighbors =
@@ -477,7 +477,7 @@ vtkCellArray* vtkIntersectionPolyDataFilter::Impl
     {
     vtkIdType lineId = iterLower->second;
     vtkIdType nLinePts, *linePtIds;
-    interLines->GetLines()->GetCell( 3*lineId, nLinePts, linePtIds );
+    interLines->GetLines()->GetCellFromId(lineId, nLinePts, linePtIds );
     lines->InsertNextCell(2);
     for (vtkIdType i = 0; i < nLinePts; i++)
       {
@@ -532,7 +532,7 @@ vtkCellArray* vtkIntersectionPolyDataFilter::Impl
         {
         vtkIdType lineId = iterLower->second;
         vtkIdType nLinePts, *linePtIds;
-        interLines->GetLines()->GetCell( 3*lineId, nLinePts, linePtIds );
+        interLines->GetLines()->GetCellFromId(lineId, nLinePts, linePtIds);
         for (vtkIdType k = 0; k < nLinePts; k++)
           {
           double t, closestPt[3];
@@ -812,7 +812,7 @@ void vtkIntersectionPolyDataFilter::Impl
       edgePtIds[1] = cellPtIds[(edgeId+1) % nCellPts];
 
       vtkIdType nLinePts, *linePtIds, newLinePtIds[2];
-      splitLines->GetLines()->GetCell( 3*lineId, nLinePts, linePtIds );
+      splitLines->GetLines()->GetCellFromId(lineId, nLinePts, linePtIds);
       newLinePtIds[0] = linePtIds[0];
       newLinePtIds[1] = linePtIds[1];
 
@@ -831,7 +831,7 @@ void vtkIntersectionPolyDataFilter::Impl
           {
           newLinePtIds[1] = newPtId;
           }
-        splitLines->GetLines()->ReplaceCell( 3*lineId, nLinePts, newLinePtIds );
+        splitLines->GetLines()->ReplaceCellFromId(lineId, nLinePts, newLinePtIds);
         }
       firstSplit = false;
 
@@ -857,7 +857,7 @@ void vtkIntersectionPolyDataFilter::Impl
         if ( nbrCellIds->IsId( candidateCellId ) >= 0 )
           {
           vtkIdType nbrLineId = removalIterLower->second.LineId;
-          splitLines->GetLines()->GetCell( 3*nbrLineId, nLinePts, linePtIds );
+          splitLines->GetLines()->GetCellFromId(nbrLineId, nLinePts, linePtIds);
           newLinePtIds[0] = linePtIds[0];
           newLinePtIds[1] = linePtIds[1];
 
@@ -870,7 +870,8 @@ void vtkIntersectionPolyDataFilter::Impl
             newLinePtIds[1] = newPtId;
             }
 
-          splitLines->GetLines()->ReplaceCell( 3*nbrLineId, nLinePts, newLinePtIds );
+          splitLines->GetLines()->ReplaceCellFromId(nbrLineId,
+                                                    nLinePts, newLinePtIds);
 
           this->PointEdgeMap[inputIndex]->erase( removalIterLower++ );
           }

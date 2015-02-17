@@ -196,22 +196,13 @@ int vtkUnstructuredGridReader::RequestData(
         cells = vtkCellArray::New();
 
         tempArray = new int[size];
-        idArray = cells->WritePointer(ncells, size);
-
-//        if (!this->ReadCells(size, cells->WritePointer(read2,size),
-//                                     skip1, read2, skip3) )
         if (!this->ReadCells(size, tempArray, skip1, read2, skip3) )
           {
           this->CloseVTKFile ();
           delete [] tempArray;
           return 1;
           }
-
-        for (i = 0; i < size; i++)
-          {
-          idArray[i] = tempArray[i];
-          }
-        delete [] tempArray;
+        cells->CopyFromCountPointsFormat(ncells, tempArray);
 
         if (cells && types)
           {

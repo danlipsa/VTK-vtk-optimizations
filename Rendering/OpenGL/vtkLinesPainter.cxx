@@ -44,10 +44,10 @@ vtkLinesPainter::~vtkLinesPainter()
 { \
   vtkIdType nPts; unsigned short count = 0; \
   glInitFuncs \
-  while (ptIds < endPtIds) \
+  vtkIdType* ptIds = NULL;\
+  for(int i = 0; i < ca->GetNumberOfCells(); ++i)\
     { \
-    nPts = *ptIds; \
-    ++ptIds; \
+    ca->GetCellFromId(i, nPts, ptIds);\
     device->BeginPrimitive(prim);\
     while (nPts > 0) \
       { \
@@ -118,8 +118,6 @@ int vtkLinesPainter::RenderPrimitive(unsigned long idx, vtkDataArray* n,
     {
     colors = c->GetPointer(0);
     }
-  vtkIdType *ptIds = ca->GetPointer();
-  vtkIdType *endPtIds = ptIds + ca->GetNumberOfConnectivityEntries();
   int ptype = p->GetDataType();
   int ntype = (n)? n->GetDataType() : 0;
   int ttype = (t)? t->GetDataType() : 0;

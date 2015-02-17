@@ -48,10 +48,6 @@ class vtkCellArray;
 class vtkDataArray;
 
 //Special internal class for iterating over data
-class vtkMVCTriIterator;
-class vtkMVCPolyIterator;
-
-
 class VTKCOMMONDATAMODEL_EXPORT vtkMeanValueCoordinatesInterpolator : public vtkObject
 {
 public:
@@ -84,13 +80,15 @@ protected:
 
   // Description:
   // Internal method that sets up the processing of triangular meshes.
-  static void ComputeInterpolationWeightsForTriangleMesh(
-    double x[3], vtkPoints *pts, vtkMVCTriIterator& iter, double *weights);
+  template<typename TriangleIterator>
+    static void ComputeInterpolationWeightsForTriangleMesh(
+      double x[3], vtkPoints *pts, TriangleIterator& iter, double *weights);
 
   // Description:
   // Internal method that sets up the processing of general polyhedron meshes.
+  template<typename PolyIterator>
   static void ComputeInterpolationWeightsForPolygonMesh(
-    double x[3], vtkPoints *pts, vtkMVCPolyIterator& iter, double *weights);
+    double x[3], vtkPoints *pts, PolyIterator& iter, double *weights);
 
 
 private:

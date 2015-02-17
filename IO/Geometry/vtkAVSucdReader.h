@@ -38,7 +38,7 @@
 
 class vtkIntArray;
 class vtkFloatArray;
-class vtkIdTypeArray;
+class vtkCellArray;
 class vtkDataArraySelection;
 
 class VTKIOGEOMETRY_EXPORT vtkAVSucdReader : public vtkUnstructuredGridAlgorithm
@@ -185,7 +185,7 @@ private:
   int ReadIntBlock(int n, int *block);
   void ReadXYZCoords(vtkFloatArray *coords);
   void ReadBinaryCellTopology(vtkIntArray *material, int *types,
-                              vtkIdTypeArray *listcells);
+                              vtkCellArray *cells);
   void ReadASCIICellTopology(vtkIntArray *material, vtkUnstructuredGrid *output);
 
   vtkAVSucdReader(const vtkAVSucdReader&);  // Not implemented.

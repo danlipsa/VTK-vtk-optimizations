@@ -267,14 +267,14 @@ int vtkQuadRotationalExtrusionFilter::RequestData( vtkInformation* vtkNotUsed( r
       if ( ( ncells=inVerts->GetNumberOfCells() ) > 0 )
         {
         newLines = vtkCellArray::New();
-        newLines->Allocate( newLines->EstimateSize( ncells,this->Resolution+1 ) );
+        newLines->Reserve(ncells,this->Resolution+1);
         }
       // arbitrary initial allocation size
       ncells = inLines->GetNumberOfCells() + inPolys->GetNumberOfCells()/10 +
         inStrips->GetNumberOfCells()/10;
       ncells = ( ncells < 100 ? 100 : ncells );
       newPolys = vtkCellArray::New();
-      newPolys->Allocate( newPolys->EstimateSize( ncells,2*( this->Resolution+1 ) ));
+      newPolys->Reserve(ncells,2*( this->Resolution+1));
       outCD->CopyNormalsOff();
       outCD->CopyAllocate( cd,ncells );
 

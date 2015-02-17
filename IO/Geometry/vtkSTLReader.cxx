@@ -169,11 +169,12 @@ int vtkSTLReader::RequestData(
     mergedPts = vtkPoints::New();
     mergedPts->Allocate(newPts->GetNumberOfPoints()/2);
     mergedPolys = vtkCellArray::New();
-    mergedPolys->Allocate(newPolys->GetSize());
+    mergedPolys->Reserve(newPolys);
     if (newScalars)
       {
       mergedScalars = vtkFloatArray::New();
-      mergedScalars->Allocate(newPolys->GetSize());
+      mergedScalars->Allocate(
+        newPolys->GetNumberOfCells() + newPolys->GetNumberOfPoints());
       }
 
     vtkSmartPointer<vtkIncrementalPointLocator> locator = this->Locator;

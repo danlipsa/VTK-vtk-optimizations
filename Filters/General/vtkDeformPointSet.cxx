@@ -116,7 +116,7 @@ int vtkDeformPointSet::RequestData(
   vtkCellArray *cmeshPolys = cmesh->GetPolys();
   vtkIdType numberOfControlMeshPoints = cmeshPts->GetNumberOfPoints();
   vtkIdType numberOfControlMeshCells = cmeshPolys->GetNumberOfCells();
-  vtkIdType numTriangles = cmeshPolys->GetNumberOfConnectivityEntries() / 4;
+  vtkIdType numTriangles = cmeshPolys->GetNumberOfCells();
   if ( numTriangles != numberOfControlMeshCells )
     {
     vtkErrorMacro("Control mesh must be a closed, manifold triangular mesh");

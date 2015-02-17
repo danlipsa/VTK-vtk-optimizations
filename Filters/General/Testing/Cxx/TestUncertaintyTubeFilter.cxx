@@ -68,7 +68,7 @@ int TestUncertaintyTubeFilter( int, char*[] )
 
   vtkSmartPointer<vtkCellArray> lines =
     vtkSmartPointer<vtkCellArray>::New();
-  lines->EstimateSize(2,5);
+  lines->Reserve(2,5);
   lines->InsertNextCell(5);
   lines->InsertCellPoint(0);
   lines->InsertCellPoint(1);

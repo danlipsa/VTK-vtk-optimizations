@@ -803,7 +803,7 @@ void vtkHull::GenerateHull(vtkPolyData *pd, double *bounds)
   newPoints = vtkPoints::New();
   newPoints->Allocate(this->NumberOfPlanes*3);
   newPolys  = vtkCellArray::New();
-  newPolys->Allocate(newPolys->EstimateSize(this->NumberOfPlanes,3));
+  newPolys->Reserve(this->NumberOfPlanes,3);
 
   this->ClipPolygonsFromPlanes( newPoints, newPolys, bounds );
 

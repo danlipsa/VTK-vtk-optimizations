@@ -55,7 +55,7 @@ vtkRectilinearWipeRepresentation::vtkRectilinearWipeRepresentation()
   this->ActiveParts = -1;  // inidicates that the widget is uninitialized
 
   this->Lines = vtkCellArray::New();
-  this->Lines->Allocate(this->Lines->EstimateSize(8,2));
+  this->Lines->Reserve(8,2);
 
   this->Wipe = vtkPolyData::New();
   this->Wipe->SetPoints(this->Points);

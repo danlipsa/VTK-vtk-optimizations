@@ -79,8 +79,8 @@ int vtkGraphToPolyData::RequestData(
 
   if (edgeGhostLevels == NULL)
     {
-    vtkSmartPointer<vtkIdTypeArray> cells =
-      vtkSmartPointer<vtkIdTypeArray>::New();
+    vtkSmartPointer<vtkCellArray> newLines =
+      vtkSmartPointer<vtkCellArray>::New();
     vtkSmartPointer<vtkEdgeListIterator> it =
       vtkSmartPointer<vtkEdgeListIterator>::New();
     input->GetEdges(it);
@@ -99,26 +99,23 @@ int vtkGraphToPolyData::RequestData(
       vtkIdType target = input->GetTargetVertex(e);
       if (npts == 0)
         {
-        cells->InsertNextValue(2);
-        cells->InsertNextValue(source);
-        cells->InsertNextValue(target);
+        newLines->InsertNextCell(2);
+        newLines->InsertCellPoint(source);
+        newLines->InsertCellPoint(target);
         }
       else
         {
-        cells->InsertNextValue(2+npts);
-        cells->InsertNextValue(source);
+        newLines->InsertNextCell(2 + npts);
+        newLines->InsertCellPoint(source);
         for (vtkIdType i = 0; i < npts; ++i, pts += 3)
           {
           noExtraPoints = false;
           vtkIdType pt = output->GetPoints()->InsertNextPoint(pts);
-          cells->InsertNextValue(pt);
+          newLines->InsertCellPoint(pt);
           }
-        cells->InsertNextValue(target);
+        newLines->InsertCellPoint(target);
         }
       }
-    vtkSmartPointer<vtkCellArray> newLines =
-      vtkSmartPointer<vtkCellArray>::New();
-    newLines->SetCells(numEdges, cells);
 
     // Send the data to output.
     output->SetLines(newLines);
@@ -140,7 +137,7 @@ int vtkGraphToPolyData::RequestData(
     outputCellData->CopyAllocate(inputCellData);
     vtkSmartPointer<vtkCellArray> newLines =
       vtkSmartPointer<vtkCellArray>::New();
-    newLines->Allocate(newLines->EstimateSize(numEdges, 2));
+    newLines->Reserve(numEdges, 2);
     vtkIdType points[2];
 
     // Only create lines for non-ghost edges

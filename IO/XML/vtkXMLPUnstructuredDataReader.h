@@ -72,8 +72,6 @@ protected:
   void SetupUpdateExtent(int piece, int numberOfPieces, int ghostLevel);
 
   int ReadPieceData();
-  void CopyCellArray(vtkIdType totalNumberOfCells, vtkCellArray* inCells,
-                     vtkCellArray* outCells);
 
   // Get the number of points/cells in the given piece.  Valid after
   // UpdateInformation.

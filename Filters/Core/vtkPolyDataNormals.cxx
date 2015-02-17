@@ -128,7 +128,7 @@ int vtkPolyDataNormals::RequestData(
     else
       {
       polys = vtkCellArray::New();
-      polys->Allocate(polys->EstimateSize(numStrips,5));
+      polys->Reserve(numStrips,5);
       }
     for ( inStrips->InitTraversal(); inStrips->GetNextCell(npts,pts); )
       {

@@ -460,7 +460,7 @@ int vtkBoxClipDataSet::RequestData(vtkInformation *vtkNotUsed(request),
       {
       for (j=0; j < numNew[i]; j++)
         {
-        locs[i]->InsertNextValue(conn[i]->GetTraversalLocation());
+        locs[i]->InsertNextValue(conn[i]->GetTraversalId());
         conn[i]->GetNextCell(npts,pts);
 
         //For each new cell added, got to set the type of the cell
@@ -493,7 +493,7 @@ int vtkBoxClipDataSet::RequestData(vtkInformation *vtkNotUsed(request),
   cell->Delete();
 
   output->SetPoints(newPoints);
-  output->SetCells(types[0], locs[0], conn[0]);
+  output->SetCells(types[0], conn[0]);
 
   conn[0]->Delete();
   types[0]->Delete();
@@ -502,7 +502,7 @@ int vtkBoxClipDataSet::RequestData(vtkInformation *vtkNotUsed(request),
   if ( this->GenerateClippedOutput )
     {
     clippedOutput->SetPoints(newPoints);
-    clippedOutput->SetCells(types[1], locs[1], conn[1]);
+    clippedOutput->SetCells(types[1], conn[1]);
     conn[1]->Delete();
     types[1]->Delete();
     locs[1]->Delete();

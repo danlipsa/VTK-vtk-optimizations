@@ -104,7 +104,7 @@ int vtkApproximatingSubdivisionFilter::RequestData(
 
     // Create triangles
     outputPolys = vtkCellArray::New();
-    outputPolys->Allocate(outputPolys->EstimateSize(4*numCells,3));
+    outputPolys->Reserve(4*numCells,3);
 
     // Create an array to hold new location indices
     edgeData = vtkIntArray::New();

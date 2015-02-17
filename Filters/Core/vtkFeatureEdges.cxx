@@ -144,7 +144,7 @@ int vtkFeatureEdges::RequestData(
       }
     else
       {
-      newPolys->Allocate(newPolys->EstimateSize(numStrips,5));
+      newPolys->Reserve(numStrips,5);
       }
     inStrips = input->GetStrips();
     for ( inStrips->InitTraversal(); inStrips->GetNextCell(npts,pts); )

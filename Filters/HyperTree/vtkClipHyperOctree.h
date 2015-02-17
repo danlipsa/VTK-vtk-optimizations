@@ -178,7 +178,6 @@ protected:
   vtkUnstructuredGrid *ClippedOutput;
 
   vtkUnsignedCharArray *Types[2];
-  vtkIdTypeArray *Locs[2];
   vtkCellArray *Conn[2];
   vtkCellData *InCD;
   vtkCellData *OutCD[2];

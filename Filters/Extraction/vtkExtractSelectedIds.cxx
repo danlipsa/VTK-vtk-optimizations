@@ -979,7 +979,7 @@ int vtkExtractSelectedIds::ExtractPoints(
         {
         vtkPolyData* outputPD = vtkPolyData::SafeDownCast(output);
         vtkCellArray *newVerts = vtkCellArray::New();
-        newVerts->Allocate(newVerts->EstimateSize(numPts,1));
+        newVerts->Reserve(numPts,1);
         for (i = 0; i < numPts; ++i)
           {
           newVerts->InsertNextCell(1, &i);

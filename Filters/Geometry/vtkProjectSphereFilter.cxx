@@ -497,11 +497,8 @@ void vtkProjectSphereFilter::SetCellInformation(
     vtkIdType prevCellId = output->GetNumberOfCells()+i-numberOfNewCells-1;
     vtkIdType newCellId = prevCellId + 1;
     vtkIdType *pts, numPts;
-    vtkIdType loc = output->GetCellLocationsArray()->GetValue(prevCellId);
-    output->GetCells()->GetCell(loc,numPts,pts);
-
-    output->GetCellLocationsArray()->InsertNextValue(loc+numPts+1);
-    output->GetCells()->GetCell(loc+numPts+1,numPts,pts);
+    output->GetCells()->GetCellFromId(prevCellId,numPts,pts);
+    output->GetCells()->GetCellFromId(prevCellId + 1,numPts,pts);
     if(cell->GetCellDimension() == 0)
       {
       if(numPts > 2)

@@ -1461,7 +1461,7 @@ int vtkSplineWidget::IsClosed()
     return 0;
     }
 
-  int numEntries = lineData->GetLines()->GetNumberOfConnectivityEntries();
+  int numCells = lineData->GetLines()->GetNumberOfCells();
 
   double p0[3];
   double p1[3];
@@ -1476,7 +1476,7 @@ int vtkSplineWidget::IsClosed()
     }
   else       // not physically closed, check connectivity
     {
-    result = ( ( numEntries - numPoints ) == 2 ) ? 1 : 0;
+    result = ( numCells == 2 ) ? 1 : 0;
     }
 
   return result;

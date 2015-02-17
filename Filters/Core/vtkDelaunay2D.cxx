@@ -426,7 +426,7 @@ int vtkDelaunay2D::RequestData(
     static_cast<vtkDoubleArray *>(points->GetData())->GetPointer(0);
 
   triangles = vtkCellArray::New();
-  triangles->Allocate(triangles->EstimateSize(2*numPoints,3));
+  triangles->Reserve(2*numPoints, 3);
 
   //create bounding triangles (there are six)
   pts[0] = numPoints; pts[1] = numPoints + 1; pts[2] = numPoints + 2;

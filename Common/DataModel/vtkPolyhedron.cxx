@@ -1429,9 +1429,9 @@ void vtkPolyhedron::ConstructPolyData()
   this->PolyConnectivity->SetNumberOfTuples(this->Faces->GetMaxId()-1);
   this->PolyConnectivity->
     SetArray(this->Faces->GetPointer(1), this->Faces->GetMaxId()-1, 1);
-  this->Polys->SetNumberOfCells(*(this->Faces->GetPointer(0)));
   this->Polys->
-    SetCells(*(this->Faces->GetPointer(0)), this->PolyConnectivity);
+    CopyFromCountPointsFormat(
+      *(this->Faces->GetPointer(0)), this->PolyConnectivity->GetPointer(0));
 
   // Standard setup
   this->PolyData->Initialize();

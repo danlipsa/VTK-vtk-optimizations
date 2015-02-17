@@ -248,7 +248,7 @@ void vtkParametricFunctionSource::Produce1DOutput(vtkInformationVector *output)
   vtkIdType i;
   double x[3], Du[3], t[3];
 
-  lines->Allocate(lines->EstimateSize(1,numPts));
+  lines->Reserve(1,numPts);
   lines->InsertNextCell(numPts);
 
   // Insert points and cell points

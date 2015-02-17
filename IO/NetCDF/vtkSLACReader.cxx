@@ -1669,7 +1669,7 @@ int vtkSLACReader::ReadMidpointData(int meshFD, vtkMultiBlockDataSet *output,
       = vtkUnstructuredGrid::SafeDownCast(output->GetDataSet(outputIter));
     vtkCellArray *oldCells = ugrid->GetCells();
     VTK_CREATE(vtkCellArray, newCells);
-    newCells->Allocate(newCells->EstimateSize(oldCells->GetNumberOfCells(), 6));
+    newCells->Reserve(oldCells->GetNumberOfCells(), 6);
 
     // Iterate over all of the cells.
     vtkIdType npts, *pts;

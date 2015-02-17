@@ -582,7 +582,7 @@ int vtkMNIObjectReader::ReadCells(vtkPolyData *data, vtkIdType numCells,
   // Create the cell array
   if (status != 0)
     {
-    cellArray->GetData()->Allocate(
+    cellArray->Allocate(
       numCells + endIndices->GetValue(numCells - 1));
 
     vtkPoints *points = data->GetPoints();

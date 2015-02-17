@@ -582,7 +582,7 @@ int vtkMaskPoints::RequestData(
       }
     else
       {
-      verts->Allocate(verts->EstimateSize(1,id+1));
+      verts->Reserve(1,id+1);
       verts->InsertNextCell(id+1);
       }
     for ( ptId=0; ptId<(id+1) && !abort; ptId++)

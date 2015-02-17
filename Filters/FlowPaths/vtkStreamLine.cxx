@@ -104,8 +104,7 @@ int vtkStreamLine::RequestData(
     newScalars->Allocate(1000);
     }
   newLines = vtkCellArray::New();
-  newLines->Allocate(newLines->EstimateSize(2*this->NumberOfStreamers,
-                                            VTK_CELL_SIZE));
+  newLines->Reserve(2*this->NumberOfStreamers, VTK_CELL_SIZE);
   //
   // Loop over all streamers generating points
   //

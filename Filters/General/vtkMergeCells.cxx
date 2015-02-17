@@ -320,19 +320,17 @@ vtkIdType vtkMergeCells::AddNewCellsUnstructuredGrid(vtkDataSet *set,
   // connectivity information for the new data set
 
   vtkCellArray *newCellArray = newUgrid->GetCells();
-  vtkIdType *newCells = newCellArray->GetPointer();
-  vtkIdType *newLocs = newUgrid->GetCellLocationsArray()->GetPointer(0);
   unsigned char *newTypes = newUgrid->GetCellTypesArray()->GetPointer(0);
 
   int newNumCells = newUgrid->GetNumberOfCells();
-  int newNumConnections = newCellArray->GetData()->GetNumberOfTuples();
+  int newNumPoints = newCellArray->GetNumberOfPoints();
 
   // If we are checking for duplicate cells, create a list now of
   // any cells in the new data set that we already have.
 
   vtkIdList *duplicateCellIds = NULL;
   int numDuplicateCells = 0;
-  int numDuplicateConnections = 0;
+  int numDuplicatePoints = 0;
 
   if (this->UseGlobalCellIds)
     {
@@ -362,9 +360,11 @@ vtkIdType vtkMergeCells::AddNewCellsUnstructuredGrid(vtkDataSet *set,
           duplicateCellIds->InsertNextId(id);
           numDuplicateCells++;
 
-          int npoints = newCells[newLocs[id]];
+          vtkIdType npoints = 0;
+          vtkIdType* points = NULL;
+          newCellArray->GetCellFromId(id, npoints, points);
 
-          numDuplicateConnections += (npoints + 1);
+          numDuplicatePoints += npoints;
           }
         }
 
@@ -379,22 +379,18 @@ vtkIdType vtkMergeCells::AddNewCellsUnstructuredGrid(vtkDataSet *set,
   // connectivity for the merged ugrid so far
 
   vtkCellArray *cellArray = NULL;
-  vtkIdType *cells = NULL;
-  vtkIdType *locs = NULL;
   unsigned char *types = NULL;
 
   int numCells = 0;
-  int numConnections = 0;
+  int numPoints = 0;
 
   if (!firstSet)
     {
     cellArray  = Ugrid->GetCells();
-    cells = cellArray->GetPointer();
-    locs = Ugrid->GetCellLocationsArray()->GetPointer(0);
     types = Ugrid->GetCellTypesArray()->GetPointer(0);;
 
     numCells         = Ugrid->GetNumberOfCells();
-    numConnections   =  cellArray->GetData()->GetNumberOfTuples();
+    numPoints   =  cellArray->GetNumberOfPoints();
     }
 
   //  New output grid: merging of existing and incoming grids
@@ -402,31 +398,14 @@ vtkIdType vtkMergeCells::AddNewCellsUnstructuredGrid(vtkDataSet *set,
   //           CELL ARRAY
 
   int totalNumCells = numCells + newNumCells - numDuplicateCells;
-  int totalNumConnections =
-      numConnections + newNumConnections - numDuplicateConnections;
-
-  vtkIdTypeArray *mergedcells = vtkIdTypeArray::New();
-  mergedcells->SetNumberOfValues(totalNumConnections);
-
-  if (!firstSet)
-    {
-    vtkIdType *idptr = mergedcells->GetPointer(0);
-    memcpy(idptr, cells, sizeof(vtkIdType) * numConnections);
-    }
+  int totalNumPoints = numPoints + newNumPoints - numDuplicatePoints;
 
   vtkCellArray *finalCellArray = vtkCellArray::New();
-  finalCellArray->SetCells(totalNumCells, mergedcells);
-
-  //           LOCATION ARRAY
-
-  vtkIdTypeArray *locationArray = vtkIdTypeArray::New();
-  locationArray->SetNumberOfValues(totalNumCells);
-
-  vtkIdType *iptr = locationArray->GetPointer(0);  // new output dataset
+  finalCellArray->Allocate(totalNumCells, totalNumPoints);
 
   if (!firstSet)
     {
-    memcpy(iptr, locs, numCells * sizeof(vtkIdType));   // existing set
+    finalCellArray->DeepCopy(cellArray);
     }
 
   //           TYPE ARRAY
@@ -444,7 +423,6 @@ vtkIdType vtkMergeCells::AddNewCellsUnstructuredGrid(vtkDataSet *set,
   // set up new cell data
 
   vtkIdType finalCellId = numCells;
-  vtkIdType nextCellArrayIndex = static_cast<vtkIdType>(numConnections);
   vtkCellData *cellArrays = set->GetCellData();
 
   vtkIdType oldPtId, finalPtId;
@@ -453,7 +431,9 @@ vtkIdType vtkMergeCells::AddNewCellsUnstructuredGrid(vtkDataSet *set,
 
   for (vtkIdType oldCellId=0; oldCellId < newNumCells; oldCellId++)
     {
-    vtkIdType size = *newCells++;
+    vtkIdType size = 0;
+    vtkIdType* points = NULL;
+    newCellArray->GetCellFromId(oldCellId, size, points);
 
     if (duplicateCellIds)
       {
@@ -461,21 +441,18 @@ vtkIdType vtkMergeCells::AddNewCellsUnstructuredGrid(vtkDataSet *set,
 
       if (skipId == oldCellId)
         {
-        newCells += size;
         nextDuplicateCellId++;
         continue;
         }
       }
 
-    locationArray->SetValue(finalCellId, nextCellArrayIndex);
-
     typeArray->SetValue(finalCellId, newTypes[oldCellId]);
 
-    mergedcells->SetValue(nextCellArrayIndex++, size);
+    finalCellArray->InsertNextCell(size);
 
     for (id=0; id < size; id++)
       {
-      oldPtId = *newCells++;
+      oldPtId = *points++;
 
       if (idMap)
         {
@@ -486,7 +463,7 @@ vtkIdType vtkMergeCells::AddNewCellsUnstructuredGrid(vtkDataSet *set,
         finalPtId = this->NumberOfPoints + oldPtId;
         }
 
-      mergedcells->SetValue(nextCellArrayIndex++, finalPtId);
+      finalCellArray->InsertCellPoint(finalPtId);
       }
 
     Ugrid->GetCellData()->CopyData(*(this->cellList), cellArrays,
@@ -495,11 +472,9 @@ vtkIdType vtkMergeCells::AddNewCellsUnstructuredGrid(vtkDataSet *set,
     finalCellId++;
     }
 
-  Ugrid->SetCells(typeArray, locationArray, finalCellArray);
+  Ugrid->SetCells(typeArray, finalCellArray);
 
-  mergedcells->Delete();
   typeArray->Delete();
-  locationArray->Delete();
   finalCellArray->Delete();
 
   if (duplicateCellIds)

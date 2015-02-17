@@ -707,7 +707,7 @@ int vtkSpiderPlotActor::PlaceAxes(vtkViewport *viewport, int* vtkNotUsed(size))
   char buf[1024];
   if ( this->IndependentVariables == VTK_IV_COLUMN )
     {
-    lines->Allocate(lines->EstimateSize(numRows,numColumns));
+    lines->Reserve(numRows,numColumns);
     for (j=0; j<numRows; j++)
       {
       lines->InsertNextCell(numColumns+1);
@@ -743,7 +743,7 @@ int vtkSpiderPlotActor::PlaceAxes(vtkViewport *viewport, int* vtkNotUsed(size))
     }
   else //row
     {
-    lines->Allocate(lines->EstimateSize(numColumns,numRows));
+    lines->Reserve(numColumns,numRows);
     for (j=0; j<numComponents; j++)
       {
       int array_comp;

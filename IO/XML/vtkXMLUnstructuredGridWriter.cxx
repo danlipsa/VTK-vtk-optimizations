@@ -259,8 +259,7 @@ void vtkXMLUnstructuredGridWriter::CalculateSuperclassFraction(float* fractions)
       }
     else
       {
-      connectSize = (grid->GetCells()->GetData()->GetNumberOfTuples() -
-                     grid->GetNumberOfCells());
+      connectSize = grid->GetCells()->GetNumberOfPoints();
       }
     }
   else

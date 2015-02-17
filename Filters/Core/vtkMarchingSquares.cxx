@@ -371,7 +371,7 @@ int vtkMarchingSquares::RequestData(
   newPts = vtkPoints::New();
   newPts->Allocate(estimatedSize,estimatedSize);
   newLines = vtkCellArray::New();
-  newLines->Allocate(newLines->EstimateSize(estimatedSize,2));
+  newLines->Reserve(estimatedSize,2);
 
   // locator used to merge potentially duplicate points
   if ( this->Locator == NULL )

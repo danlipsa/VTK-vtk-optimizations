@@ -376,39 +376,6 @@ void vtkXMLPUnstructuredDataReader::CopyArrayForPoints(
 }
 
 //----------------------------------------------------------------------------
-void vtkXMLPUnstructuredDataReader::CopyCellArray(
-  vtkIdType totalNumberOfCells, vtkCellArray* inCells, vtkCellArray* outCells)
-{
-  // Allocate memory in the output connectivity array.
-  vtkIdType curSize = 0;
-  if (outCells->GetData())
-    {
-    curSize = outCells->GetData()->GetNumberOfTuples();
-    }
-  vtkIdTypeArray* inData = inCells->GetData();
-  vtkIdType newSize = curSize+inData->GetNumberOfTuples();
-  vtkIdType* in = inData->GetPointer(0);
-  vtkIdType* end = inData->GetPointer(inData->GetNumberOfTuples());
-  vtkIdType* out = outCells->WritePointer(totalNumberOfCells, newSize);
-  out += curSize;
-
-  // Copy the connectivity data.
-  while (in < end)
-    {
-    vtkIdType length = *in++;
-    *out++ = length;
-    // Copy the point indices, but increment them for the appended
-    // version's index.
-    for (vtkIdType j = 0; j < length; ++j)
-      {
-      out[j] = in[j] + this->StartPoint;
-      }
-    in += length;
-    out += length;
-    }
-}
-
-//----------------------------------------------------------------------------
 int vtkXMLPUnstructuredDataReader::RequestInformation(
    vtkInformation *request,
    vtkInformationVector **inputVector,

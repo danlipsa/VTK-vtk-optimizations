@@ -131,8 +131,7 @@ int TestPolyhedron1( int argc, char* argv[] )
   vtkSmartPointer<vtkUnstructuredGrid> ugrid =
     vtkSmartPointer<vtkUnstructuredGrid>::New();
   ugrid->SetPoints(dodechedronPoints);
-  ugrid->InsertNextCell(VTK_POLYHEDRON, 20, dodechedronPointsIds,
-    12, dodechedronFaces->GetPointer());
+  ugrid->InsertNextCell(20, dodechedronPointsIds, dodechedronFaces);
   ugrid->GetPointData()->SetScalars(pointDataArray);
   //ugrid->GetCellData()->SetScalars(cellDataArray);
 

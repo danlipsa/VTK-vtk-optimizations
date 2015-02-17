@@ -20,10 +20,11 @@ vtkStandardNewMacro(vtkCellArray);
 //----------------------------------------------------------------------------
 vtkCellArray::vtkCellArray()
 {
-  this->Ia = vtkIdTypeArray::New();
-  this->NumberOfCells = 0;
-  this->InsertLocation = 0;
-  this->TraversalLocation = 0;
+  this->Points = vtkIdTypeArray::New();
+  this->CellIndex = vtkIdTypeArray::New();
+  this->CellIndex->InsertValue(0, 0);
+  this->InsertPointLocation = 0;
+  this->TraversalId = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -35,25 +36,27 @@ void vtkCellArray::DeepCopy (vtkCellArray *ca)
     return;
     }
 
-  this->Ia->DeepCopy(ca->Ia);
-  this->NumberOfCells = ca->NumberOfCells;
-  this->InsertLocation = ca->InsertLocation;
-  this->TraversalLocation = ca->TraversalLocation;
+  this->Points->DeepCopy(ca->Points);
+  this->CellIndex->DeepCopy(ca->CellIndex);
+  this->InsertPointLocation = ca->InsertPointLocation;
+  this->TraversalId = ca->TraversalId;
 }
 
 //----------------------------------------------------------------------------
 vtkCellArray::~vtkCellArray()
 {
-  this->Ia->Delete();
+  this->Points->Delete();
+  this->CellIndex->Delete();
 }
 
 //----------------------------------------------------------------------------
 void vtkCellArray::Initialize()
 {
-  this->Ia->Initialize();
-  this->NumberOfCells = 0;
-  this->InsertLocation = 0;
-  this->TraversalLocation = 0;
+  this->Points->Initialize();
+  this->CellIndex->Initialize();
+  this->CellIndex->InsertValue(0, 0);
+  this->InsertPointLocation = 0;
+  this->TraversalId = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -61,11 +64,14 @@ void vtkCellArray::Initialize()
 // defining the cell.
 int vtkCellArray::GetMaxCellSize()
 {
-  int i, npts=0, maxSize=0;
-
-  for (i=0; i<this->Ia->GetMaxId(); i+=(npts+1))
+  int maxSize=0;
+  vtkIdType *cellIndex = this->CellIndex->GetPointer(0);
+  vtkIdType *maxCellIndex = this->CellIndex->GetPointer(
+    this->CellIndex->GetNumberOfTuples() - 1);
+  for (; cellIndex < maxCellIndex; ++cellIndex)
     {
-    if ( (npts=this->Ia->GetValue(i)) > maxSize )
+    vtkIdType npts;
+    if ( (npts= *(cellIndex + 1) - *cellIndex) > maxSize )
       {
       maxSize = npts;
       }
@@ -74,26 +80,9 @@ int vtkCellArray::GetMaxCellSize()
 }
 
 //----------------------------------------------------------------------------
-// Specify a group of cells.
-void vtkCellArray::SetCells(vtkIdType ncells, vtkIdTypeArray *cells)
-{
-  if ( cells && cells != this->Ia )
-    {
-    this->Modified();
-    this->Ia->Delete();
-    this->Ia = cells;
-    this->Ia->Register(this);
-
-    this->NumberOfCells = ncells;
-    this->InsertLocation = cells->GetMaxId() + 1;
-    this->TraversalLocation = 0;
-    }
-}
-
-//----------------------------------------------------------------------------
 unsigned long vtkCellArray::GetActualMemorySize()
 {
-  return this->Ia->GetActualMemorySize();
+  return this->Points->GetActualMemorySize() + this->CellIndex->GetActualMemorySize();
 }
 
 //----------------------------------------------------------------------------
@@ -113,10 +102,11 @@ int vtkCellArray::GetNextCell(vtkIdList *pts)
 }
 
 //----------------------------------------------------------------------------
-void vtkCellArray::GetCell(vtkIdType loc, vtkIdList *pts)
+void vtkCellArray::GetCellFromId(vtkIdType cellId, vtkIdList *pts)
 {
-  vtkIdType npts = this->Ia->GetValue(loc++);
-  vtkIdType *ppts = this->Ia->GetPointer(loc);
+  vtkIdType npts;
+  vtkIdType *ppts;
+  this->GetCellFromId(cellId, npts, ppts);
   pts->SetNumberOfIds(npts);
   for (vtkIdType i = 0; i < npts; i++)
     {
@@ -129,7 +119,32 @@ void vtkCellArray::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
-  os << indent << "Number Of Cells: " << this->NumberOfCells << endl;
-  os << indent << "Insert Location: " << this->InsertLocation << endl;
-  os << indent << "Traversal Location: " << this->TraversalLocation << endl;
+  os << indent << "Number Of Cells: " << this->GetNumberOfCells() << endl;
+  os << indent << "Insert Point Location: " << this->InsertPointLocation << endl;
+  os << indent << "Traversal CellId: " << this->TraversalId << endl;
+}
+
+//----------------------------------------------------------------------------
+int vtkCellArray::IsHomogeneous(int* numberOfPoints) const
+{
+  int npts = 0;
+  vtkIdType *cellIndex = this->CellIndex->GetPointer(0);
+  vtkIdType *maxCellIndex = this->CellIndex->GetPointer(
+    this->CellIndex->GetNumberOfTuples() - 1);
+  if (cellIndex >= maxCellIndex)
+    {
+    // there are 0 cells, so numberOfPoints is undefined
+    return 1;
+    }
+  npts = *(cellIndex + 1) - *cellIndex;
+  ++cellIndex;
+  for (; cellIndex < maxCellIndex; ++cellIndex)
+    {
+    if ((*(cellIndex + 1) - *cellIndex) != npts)
+      {
+      return 0;
+      }
+    }
+  *numberOfPoints = npts;
+  return 1;
 }

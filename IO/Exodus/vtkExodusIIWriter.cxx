@@ -1623,18 +1623,6 @@ int vtkExodusIIWriter::WriteBlockInformation()
   for (size_t i = 0; i < this->FlattenedInput.size (); i ++)
     {
     vtkCellArray *ca = this->FlattenedInput[i]->GetCells();
-    vtkIdType *ptIds = 0;
-    if (ca)
-      {
-      ptIds = ca->GetPointer ();
-      }
-    vtkIdTypeArray *loca = this->FlattenedInput[i]->GetCellLocationsArray();
-    vtkIdType *loc = 0;
-    if (loca)
-      {
-      loc = loca->GetPointer(0);
-      }
-
     int ncells = this->FlattenedInput[i]->GetNumberOfCells();
     for (int j = 0; j < ncells; j++)
       {
@@ -1653,9 +1641,10 @@ int vtkExodusIIWriter::WriteBlockInformation()
         offset = elementOffset * nodesPerElement;
         }
 
-      // the block connectivity array
-      vtkIdType ptListIdx = loc[j];
-      vtkIdType npts = ptIds[ptListIdx++];
+      vtkIdType ptListIdx = 0;
+      vtkIdType npts = 0;
+      vtkIdType *ptIds = NULL;
+      ca->GetCellFromId(j, npts, ptIds);
 
       switch (this->FlattenedInput[i]->GetCellType (j))
         {

@@ -117,10 +117,10 @@ int vtkQuadricLODActor::RenderOpaqueGeometry(vtkViewport *vp)
 //----------------------------------------------------------------------------
 inline vtkIdType vtkQuadricLODActor::GetDisplayListSize(vtkPolyData *pd)
 {
-  vtkIdType numEntries = pd->GetVerts()->GetNumberOfConnectivityEntries();
-  numEntries += pd->GetLines()->GetNumberOfConnectivityEntries();
-  numEntries += pd->GetPolys()->GetNumberOfConnectivityEntries();
-  numEntries += pd->GetStrips()->GetNumberOfConnectivityEntries();
+  vtkIdType numEntries = pd->GetVerts()->GetNumberOfPoints();
+  numEntries += pd->GetLines()->GetNumberOfPoints();
+  numEntries += pd->GetPolys()->GetNumberOfPoints();
+  numEntries += pd->GetStrips()->GetNumberOfPoints();
 
   return numEntries;
 }

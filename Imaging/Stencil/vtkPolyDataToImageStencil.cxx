@@ -302,14 +302,12 @@ void vtkPolyDataToImageStencil::PolyDataSelector(
   // use a map to avoid adding duplicate points
   std::map<vtkIdType, vtkIdType> pointLocator;
 
-  vtkIdType loc = 0;
   vtkIdType numCells = lines->GetNumberOfCells();
   for (vtkIdType cellId = 0; cellId < numCells; cellId++)
     {
     // check if all points in cell are within the slice
     vtkIdType npts, *ptIds;
-    lines->GetCell(loc, npts, ptIds);
-    loc += npts + 1;
+    lines->GetCellFromId(cellId, npts, ptIds);
     vtkIdType i;
     for (i = 0; i < npts; i++)
       {
@@ -373,20 +371,19 @@ void vtkPolyDataToImageStencil::PolyDataCutter(
   vtkIdType numStrips = input->GetNumberOfStrips();
   vtkIdType numCells = numPolys + numStrips;
 
-  vtkIdType loc = 0;
   vtkCellArray *cellArray = inputPolys;
-  for (vtkIdType cellId = 0; cellId < numCells; cellId++)
+  for (vtkIdType cellId = 0, specificCellId = 0;
+       cellId < numCells; ++cellId, ++specificCellId)
     {
     // switch to strips when polys are done
     if (cellId == numPolys)
       {
-      loc = 0;
+      specificCellId = 0;
       cellArray = inputStrips;
       }
 
     vtkIdType npts, *ptIds;
-    cellArray->GetCell(loc, npts, ptIds);
-    loc += npts + 1;
+    cellArray->GetCellFromId(specificCellId, npts, ptIds);
 
     vtkIdType numSubCells = 1;
     if (cellArray == inputStrips)
@@ -551,10 +548,10 @@ void vtkPolyDataToImageStencil::ThreadedExecute(
     vtkCellArray *lines = slice->GetLines();
     vtkIdType npts = 0;
     vtkIdType *pointIds = 0;
-    vtkIdType count = lines->GetNumberOfConnectivityEntries();
-    for (vtkIdType loc = 0; loc < count; loc += npts + 1)
+    vtkIdType numberOfCells = lines->GetNumberOfCells();
+    for (vtkIdType cellId = 0; cellId < numberOfCells; ++cellId)
       {
-      lines->GetCell(loc, npts, pointIds);
+      lines->GetCellFromId(cellId, npts, pointIds);
       if (npts > 0)
         {
         pointNeighborCounts[pointIds[0]] += 1;
@@ -728,10 +725,10 @@ void vtkPolyDataToImageStencil::ThreadedExecute(
     // Step 3: Go through all the line segments for this slice,
     // and for each integer y position on the line segment,
     // drop the corresponding x position into the y raster line.
-    count = lines->GetNumberOfConnectivityEntries();
-    for (vtkIdType loc = 0; loc < count; loc += npts + 1)
+    numberOfCells = lines->GetNumberOfCells();
+    for (vtkIdType cellId = 0; cellId < numberOfCells; ++cellId)
       {
-      lines->GetCell(loc, npts, pointIds);
+      lines->GetCellFromId(cellId, npts, pointIds);
       if (npts > 0)
         {
         vtkIdType pointId0 = pointIds[0];

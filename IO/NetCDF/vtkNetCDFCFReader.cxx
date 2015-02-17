@@ -1712,7 +1712,7 @@ void vtkNetCDFCFReader::AddStructuredCells(
     vtkIdType totalNumCells = numCells[0]*numCells[1];
     unstructuredOutput->Allocate(totalNumCells);
     vtkCellArray *cells = unstructuredOutput->GetCells();
-    cells->Allocate(cells->EstimateSize(totalNumCells, 4));
+    cells->Reserve(totalNumCells, 4);
 
     for (int j = 0; j < numCells[1]; j++)
       {
@@ -1736,7 +1736,7 @@ void vtkNetCDFCFReader::AddStructuredCells(
     vtkIdType totalNumCells = numCells[0]*numCells[1]*numCells[2];
     unstructuredOutput->Allocate(totalNumCells);
     vtkCellArray *cells = unstructuredOutput->GetCells();
-    cells->Allocate(cells->EstimateSize(totalNumCells, 8));
+    cells->Reserve(totalNumCells, 8);
 
     for (int k = 0; k < numCells[2]; k++)
       {
@@ -1796,7 +1796,7 @@ void vtkNetCDFCFReader::AddUnstructuredRectilinearCoordinates(
   // Make space in output unstructured grid.
   unstructuredOutput->Allocate(extent[1] - extent[0]);
   vtkCellArray *cells = unstructuredOutput->GetCells();
-  cells->Allocate(cells->EstimateSize(extent[1]-extent[0], numPointsPerCell));
+  cells->Reserve(extent[1]-extent[0], numPointsPerCell);
 
   std::vector<vtkIdType> cellPoints(numPointsPerCell);
 

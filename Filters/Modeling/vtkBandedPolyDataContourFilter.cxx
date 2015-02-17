@@ -224,7 +224,7 @@ int vtkBandedPolyDataContourFilter::RequestData(
   int numEdgePts, numNewPts, maxCellSize;
   vtkIdType v, vR, *intPts;
   int intsIdx, reverse;
-  vtkIdType intLoc;
+  vtkIdType intEdgeId;
   vtkIdType numIntPts, intsInc;
   vtkIdType numPts, numCells, estimatedSize;
 
@@ -392,7 +392,7 @@ int vtkBandedPolyDataContourFilter::RequestData(
             }
           intList->InsertNextCell(numEdgePts,fullLine);
           edgeTable->InsertEdge(pts[i],pts[i+1], //associate ints with edge
-                                intList->GetInsertLocation(numEdgePts));
+                                intList->GetNumberOfCells() - 1);
           }
         else //no intersection points along the edge
           {
@@ -416,9 +416,9 @@ int vtkBandedPolyDataContourFilter::RequestData(
                     this->ComputeScalarIndex(outScalars->GetTuple1(v)));
         newLines->InsertCellPoint(v);
 
-        if ( (intLoc=edgeTable->IsEdge(v,vR)) != -1 )
+        if ( (intEdgeId=edgeTable->IsEdge(v,vR)) != -1 )
           {
-          intList->GetCell(intLoc,numIntPts,intPts);
+          intList->GetCellFromId(intEdgeId,numIntPts,intPts);
           if ( v < vR ) {intsIdx = 0; intsInc=1;} //order of the edge
           else {intsIdx=numIntPts-1; intsInc=(-1);}
 
@@ -498,7 +498,7 @@ int vtkBandedPolyDataContourFilter::RequestData(
         }
       else
         {
-        tmpPolys->Allocate(polys->EstimateSize(numStrips,5));
+        tmpPolys->Reserve(numStrips,5);
         }
       for ( strips->InitTraversal(); strips->GetNextCell(npts,pts); )
         {
@@ -542,7 +542,7 @@ int vtkBandedPolyDataContourFilter::RequestData(
               }
             intList->InsertNextCell(numEdgePts,fullPoly);
             edgeTable->InsertEdge(v,vR, //associate ints with edge
-                                  intList->GetInsertLocation(numEdgePts));
+                                  intList->GetNumberOfCells() - 1);
             }
           else //no intersection points along the edge
             {
@@ -584,10 +584,10 @@ int vtkBandedPolyDataContourFilter::RequestData(
         fullPoly[numFullPts++] = v;
 
         //see whether intersection points need to be added.
-        if ( (intLoc=edgeTable->IsEdge(v,vR)) != -1 )
+        if ( (intEdgeId=edgeTable->IsEdge(v,vR)) != -1 )
           {
           intersectionPoint = 1;
-          intList->GetCell(intLoc,numIntPts,intPts);
+          intList->GetCellFromId(intEdgeId,numIntPts,intPts);
           if ( v < vR ) {intsIdx = 0; intsInc=1;} //order of the edge
           else {intsIdx=numIntPts-1; intsInc=(-1);}
           for ( ; intsIdx >= 0 && intsIdx < numIntPts; intsIdx += intsInc )

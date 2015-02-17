@@ -166,6 +166,49 @@ int CompareArrays(const T *A, const T *B, vtkIdType length)
   return 1;
 }
 
+int CompareCellArrays(vtkCellArray *A, vtkCellArray *B)
+{
+  if (A == B)
+    {
+    return 1;
+    }
+  if (A->GetNumberOfCells() != B->GetNumberOfCells())
+    {
+    vtkGenericWarningMacro(
+      << "Cell arrays have different number of cells: "
+      << A->GetNumberOfCells() << ", " << B->GetNumberOfCells());
+    return 0;
+    }
+  if (A->GetNumberOfPoints() != B->GetNumberOfPoints())
+    {
+    vtkGenericWarningMacro(
+      << "Cell arrays have different number of cells: "
+      << A->GetNumberOfPoints() << ", " << B->GetNumberOfPoints());
+    return 0;
+    }
+  for (int i = 0; i < A->GetNumberOfCells(); ++i)
+    {
+    vtkIdType anpts;
+    vtkIdType* apts;
+    vtkIdType bnpts;
+    vtkIdType* bpts;
+    A->GetCellFromId(i, anpts, apts);
+    B->GetCellFromId(i, bnpts, bpts);
+    if (anpts != bnpts)
+      {
+      vtkGenericWarningMacro(
+        << "Cell " << i << " has a different number of points: "
+        << anpts << ", " << bnpts);
+      return 0;
+      }
+    if (! CompareArrays(apts, bpts, anpts))
+      {
+      vtkGenericWarningMacro(<< "Cell " << i << " has different point ids");
+      return 0;
+      }
+    }
+}
+
 int CompareDataArrays(vtkDataArray *A, vtkDataArray *B)
 {
   if (A == B) return 1;
@@ -299,14 +342,14 @@ static int CompareDataObjects(vtkDataObject *obj1, vtkDataObject *obj2)
     vtkPolyData *pd2 = vtkPolyData::SafeDownCast(ps2);
     if (pd1 && pd2)
       {
-      if (!CompareDataArrays(pd1->GetVerts()->GetData(),
-                             pd2->GetVerts()->GetData())) return 0;
-      if (!CompareDataArrays(pd1->GetLines()->GetData(),
-                             pd2->GetLines()->GetData())) return 0;
-      if (!CompareDataArrays(pd1->GetPolys()->GetData(),
-                             pd2->GetPolys()->GetData())) return 0;
-      if (!CompareDataArrays(pd1->GetStrips()->GetData(),
-                             pd2->GetStrips()->GetData())) return 0;
+      if (!CompareCellArrays(pd1->GetVerts(),
+                             pd2->GetVerts())) return 0;
+      if (!CompareCellArrays(pd1->GetLines(),
+                             pd2->GetLines())) return 0;
+      if (!CompareCellArrays(pd1->GetPolys(),
+                             pd2->GetPolys())) return 0;
+      if (!CompareCellArrays(pd1->GetStrips(),
+                             pd2->GetStrips())) return 0;
       }
     }
 

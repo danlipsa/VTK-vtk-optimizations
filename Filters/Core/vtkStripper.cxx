@@ -159,7 +159,7 @@ int vtkStripper::RequestData(
   if ( inStrips->GetNumberOfCells() > 0 || inPolys->GetNumberOfCells() > 0 )
     {
     newStrips = vtkCellArray::New();
-    newStrips->Allocate(newStrips->EstimateSize(numCells,6));
+    newStrips->Reserve(numCells,6);
     cellId = inNumVerts + inNumLines + inNumPolys;
     for(inStrips->InitTraversal();
         inStrips->GetNextCell(numStripPts,stripPts); )
@@ -184,14 +184,14 @@ int vtkStripper::RequestData(
       }
     // These are for passing through non-triangle polygons
     newPolys = vtkCellArray::New();
-    newPolys->Allocate(newStrips->EstimateSize(numCells/2,4));
+    newPolys->Reserve(numCells/2,4);
     }
 
   // pre-load existing poly-lines
   if ( inLines->GetNumberOfCells() > 0 )
     {
     newLines = vtkCellArray::New();
-    newLines->Allocate(newLines->EstimateSize(numCells,6));
+    newLines->Reserve(numCells,6);
     cellId = inNumVerts;
     for (inLines->InitTraversal(); inLines->GetNextCell(numLinePts,linePts); cellId++)
       {

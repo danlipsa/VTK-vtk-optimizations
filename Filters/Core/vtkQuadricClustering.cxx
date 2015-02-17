@@ -1493,7 +1493,7 @@ void vtkQuadricClustering::FindFeaturePoints(vtkCellArray *edges,
       {
       for (int j = 0; j < 2; j++)
         {
-        edges->GetCell(3*pointTable[i][j+2], numCellPts, cellPointIds);
+        edges->GetCellFromId(pointTable[i][j+2], numCellPts, cellPointIds);
         if (cellPointIds[0] == pointTable[i][0])
           {
           edgePts->GetPoint(cellPointIds[0], point1);

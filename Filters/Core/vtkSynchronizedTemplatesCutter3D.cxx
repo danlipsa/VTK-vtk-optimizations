@@ -100,7 +100,7 @@ static void vtkSynchronizedTemplatesCutter3DInitializeOutput(
 
   newPts->Allocate(estimatedSize,estimatedSize);
   newPolys = vtkCellArray::New();
-  newPolys->Allocate(newPolys->EstimateSize(estimatedSize,3));
+  newPolys->Reserve(estimatedSize,3);
 
   o->GetPointData()->CopyAllOn();
 

@@ -112,7 +112,7 @@ int vtkSplineFilter::RequestData(
   newPts = vtkPoints::New();
   newPts->Allocate(numNewPts);
   newLines = vtkCellArray::New();
-  newLines->Allocate(newLines->EstimateSize(1,numNewPts));
+  newLines->Reserve(1,numNewPts);
 
   // Point data
   if ( (this->GenerateTCoords == VTK_TCOORDS_FROM_SCALARS &&

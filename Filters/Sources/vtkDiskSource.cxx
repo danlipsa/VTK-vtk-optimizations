@@ -75,7 +75,7 @@ int vtkDiskSource::RequestData(
 
   newPoints->Allocate(numPts);
   newPolys = vtkCellArray::New();
-  newPolys->Allocate(newPolys->EstimateSize(numPolys,4));
+  newPolys->Reserve(numPolys,4);
 
   // Create disk
   //

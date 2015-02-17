@@ -355,7 +355,7 @@ void vtkParallelCoordinatesView::SetMaximumNumberOfBrushPoints(int num)
       pts->InsertPoint ( i,-1,-1,0 );
 
     vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
-    lines->Allocate ( lines->EstimateSize ( 4,this->MaximumNumberOfBrushPoints ) );
+    lines->Reserve(4,this->MaximumNumberOfBrushPoints);
 
     // first line is for a manually drawn curve, for selecting lines
     // second line is for the spline used for angular brushing
@@ -403,7 +403,7 @@ int vtkParallelCoordinatesView::AddLassoBrushPoint ( double *p )
   this->BrushData->GetPoints()->SetPoint ( ptid,p[0],p[1],0 );
 
   vtkIdType npts; vtkIdType *ptids;
-  this->BrushData->GetLines()->GetCell ( 0,npts,ptids );
+  this->BrushData->GetLines()->GetCellFromId ( 0,npts,ptids );
 
   for ( vtkIdType i=ptid; i<npts; i++ )
     ptids[i] = ptid;
@@ -686,7 +686,7 @@ void vtkParallelCoordinatesView::SelectData(unsigned long eventId)
       {
       vtkIdType *ptids;
       vtkIdType npts;
-      this->BrushData->GetLines()->GetCell(0,npts,ptids);
+      this->BrushData->GetLines()->GetCellFromId(0,npts,ptids);
 
       vtkSmartPointer<vtkPoints> pts = vtkSmartPointer<vtkPoints>::New();
       for (int i=0; i<npts; i++)

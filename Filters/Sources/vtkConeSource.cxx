@@ -118,14 +118,14 @@ int vtkConeSource::RequestData(
     numPts = 2;
     numLines =  1;
     newLines = vtkCellArray::New();
-    newLines->Allocate(newLines->EstimateSize(numLines,numPts));
+    newLines->Reserve(numLines,numPts);
     break;
 
   case 1: case 2:
     numPts = 2*this->Resolution + 1;
     numPolys = this->Resolution;
     newPolys = vtkCellArray::New();
-    newPolys->Allocate(newPolys->EstimateSize(numPolys,3));
+    newPolys->Reserve(numPolys,3);
     break;
 
   default:
@@ -141,7 +141,7 @@ int vtkConeSource::RequestData(
       numPolys = end - start + 2;
       }
     newPolys = vtkCellArray::New();
-    newPolys->Allocate(newPolys->EstimateSize(numPolys,this->Resolution));
+    newPolys->Reserve(numPolys,this->Resolution);
     break;
   }
   newPoints = vtkPoints::New();

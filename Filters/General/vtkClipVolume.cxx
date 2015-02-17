@@ -128,7 +128,7 @@ int vtkClipVolume::RequestData(
 
   vtkUnstructuredGrid *clippedOutput = this->GetClippedOutput();
   vtkCellArray *outputConn;
-  vtkIdTypeArray *outputLoc;
+  vtkIdTypeArray *outputIds;
   vtkUnsignedCharArray *outputTypes;
   vtkIdType cellId, newCellId, i;
   int j, k, flip;
@@ -196,8 +196,8 @@ int vtkClipVolume::RequestData(
   this->NumberOfCells = 0;
   this->Connectivity = vtkCellArray::New();
   this->Connectivity->Allocate(estimatedSize*2); //allocate storage for cells
-  this->Locations = vtkIdTypeArray::New();
-  this->Locations->Allocate(estimatedSize);
+  this->Ids = vtkIdTypeArray::New();
+  this->Ids->Allocate(estimatedSize);
   this->Types = vtkUnsignedCharArray::New();
   this->Types->Allocate(estimatedSize);
 
@@ -255,8 +255,8 @@ int vtkClipVolume::RequestData(
     this->NumberOfClippedCells = 0;
     this->ClippedConnectivity = vtkCellArray::New();
     this->ClippedConnectivity->Allocate(estimatedSize); //storage for cells
-    this->ClippedLocations = vtkIdTypeArray::New();
-    this->ClippedLocations->Allocate(estimatedSize);
+    this->ClippedIds = vtkIdTypeArray::New();
+    this->ClippedIds->Allocate(estimatedSize);
     this->ClippedTypes = vtkUnsignedCharArray::New();
     this->ClippedTypes->Allocate(estimatedSize);
     }
@@ -335,7 +335,7 @@ int vtkClipVolume::RequestData(
           if (above && !below)
             {
             outputConn = this->Connectivity;
-            outputLoc = this->Locations;
+            outputIds = this->Ids;
             outputTypes = this->Types;
             outputCount = &this->NumberOfCells;
             outputCD = outCD;
@@ -343,7 +343,7 @@ int vtkClipVolume::RequestData(
           else
             {
             outputConn = this->ClippedConnectivity;
-            outputLoc = this->ClippedLocations;
+            outputIds = this->ClippedIds;
             outputTypes = this->ClippedTypes;
             outputCount = &this->NumberOfClippedCells;
             outputCD = clippedCD;
@@ -362,7 +362,7 @@ int vtkClipVolume::RequestData(
               }
             newCellId = outputConn->InsertNextCell(4,pts);
             (*outputCount)++;
-            outputLoc->InsertNextValue(outputConn->GetTraversalLocation());
+            outputIds->InsertNextValue(outputConn->GetTraversalId());
             outputConn->GetNextCell(npts,dpts); //updates traversal location
             outputTypes->InsertNextValue( VTK_TETRA );
             outputCD->CopyData(inCD,cellId,newCellId);
@@ -391,9 +391,9 @@ int vtkClipVolume::RequestData(
 
   // Create the output
   output->SetPoints(newPoints);
-  output->SetCells(this->Types,this->Locations,this->Connectivity);
+  output->SetCells(this->Types, this->Connectivity);
   this->Types->Delete();
-  this->Locations->Delete();
+  this->Ids->Delete();
   this->Connectivity->Delete();
   output->Squeeze();
   vtkDebugMacro(<<"Created: "
@@ -403,10 +403,9 @@ int vtkClipVolume::RequestData(
   if ( this->GenerateClippedOutput )
     {
     clippedOutput->SetPoints(newPoints);
-    clippedOutput->SetCells(this->ClippedTypes,this->ClippedLocations,
-                            this->ClippedConnectivity);
+    clippedOutput->SetCells(this->ClippedTypes,this->ClippedConnectivity);
     this->ClippedTypes->Delete();
-    this->ClippedLocations->Delete();
+    this->ClippedIds->Delete();
     this->ClippedConnectivity->Delete();
     clippedOutput->GetPointData()->PassData(outPD);
     clippedOutput->Squeeze();
@@ -473,8 +472,8 @@ void vtkClipVolume::ClipTets(double value, vtkTetra *clipTetra,
     this->NumberOfCells = this->Connectivity->GetNumberOfCells();
     for (k=0; k<numNew; k++)
       {
-      this->Locations->
-        InsertNextValue(this->Connectivity->GetTraversalLocation());
+      this->Ids->
+        InsertNextValue(this->Connectivity->GetTraversalId());
       this->Connectivity->GetNextCell(npts,pts);
       this->Types->InsertNextValue((npts==4?VTK_TETRA:VTK_WEDGE));
       }
@@ -490,8 +489,8 @@ void vtkClipVolume::ClipTets(double value, vtkTetra *clipTetra,
         this->ClippedConnectivity->GetNumberOfCells();
       for (k=0; k<numNew; k++)
         {
-        this->ClippedLocations->InsertNextValue(
-          this->ClippedConnectivity->GetTraversalLocation() );
+        this->ClippedIds->InsertNextValue(
+          this->ClippedConnectivity->GetTraversalId() );
         this->ClippedConnectivity->GetNextCell(npts,pts);
         this->ClippedTypes->InsertNextValue((npts==4?VTK_TETRA:VTK_WEDGE));
         }
@@ -621,8 +620,8 @@ void vtkClipVolume::ClipVoxel(double value, vtkDataArray *cellScalars,
   this->NumberOfCells = this->Connectivity->GetNumberOfCells();
   for (k=0; k<numNew; k++)
     {
-    newCellId = this->Locations->
-      InsertNextValue(this->Connectivity->GetTraversalLocation());
+    newCellId = this->Ids->
+      InsertNextValue(this->Connectivity->GetTraversalId());
     this->Connectivity->GetNextCell(npts,pts); //updates traversal location
     this->Types->InsertNextValue(VTK_TETRA);
     outCD->CopyData(inCD,cellId,newCellId);
@@ -636,8 +635,8 @@ void vtkClipVolume::ClipVoxel(double value, vtkDataArray *cellScalars,
     this->NumberOfClippedCells = this->ClippedConnectivity->GetNumberOfCells();
     for (k=0; k<numNew; k++)
       {
-      newCellId = this->ClippedLocations->
-        InsertNextValue(this->ClippedConnectivity->GetTraversalLocation());
+      newCellId = this->ClippedIds->
+        InsertNextValue(this->ClippedConnectivity->GetTraversalId());
       this->ClippedConnectivity->GetNextCell(npts,pts);
       this->ClippedTypes->InsertNextValue(VTK_TETRA);
       clippedCD->CopyData(inCD,cellId,newCellId);

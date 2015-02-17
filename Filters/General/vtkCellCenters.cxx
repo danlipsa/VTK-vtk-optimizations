@@ -103,7 +103,7 @@ int vtkCellCenters::RequestData(
     vtkIdType pts[1];
     vtkCellData *outCD=output->GetCellData();
     vtkCellArray *verts = vtkCellArray::New();
-    verts->Allocate(verts->EstimateSize(1,numCells),1);
+    verts->Reserve(1,numCells);
 
     for (cellId=0; cellId < numCells && !abort; cellId++)
       {

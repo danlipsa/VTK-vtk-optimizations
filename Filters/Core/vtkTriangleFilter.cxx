@@ -66,7 +66,7 @@ int vtkTriangleFilter::RequestData(
       {
       newId = output->GetNumberOfCells();
       newCells = vtkCellArray::New();
-      newCells->EstimateSize(cells->GetNumberOfCells(),1);
+      newCells->Reserve(cells->GetNumberOfCells(),1);
       for (cells->InitTraversal(); cells->GetNextCell(npts,pts) && !abort; cellNum++)
         {
         if ( ! (cellNum % updateInterval) ) //manage progress reports / early abort
@@ -105,7 +105,7 @@ int vtkTriangleFilter::RequestData(
       {
       newId = output->GetNumberOfCells();
       newCells = vtkCellArray::New();
-      newCells->EstimateSize(cells->GetNumberOfCells(),2);
+      newCells->Reserve(cells->GetNumberOfCells(),2);
       for (cells->InitTraversal(); cells->GetNextCell(npts,pts) && !abort; cellNum++)
         {
         if ( ! (cellNum % updateInterval) ) //manage progress reports / early abort
@@ -142,7 +142,7 @@ int vtkTriangleFilter::RequestData(
     cells = input->GetPolys();
     newId = output->GetNumberOfCells();
     newPolys = vtkCellArray::New();
-    newPolys->EstimateSize(cells->GetNumberOfCells(),3);
+    newPolys->Reserve(cells->GetNumberOfCells(),3);
     output->SetPolys(newPolys);
     vtkIdList *ptIds = vtkIdList::New();
     ptIds->Allocate(VTK_CELL_SIZE);
@@ -198,7 +198,7 @@ int vtkTriangleFilter::RequestData(
     if ( newPolys == NULL )
       {
       newPolys = vtkCellArray::New();
-      newPolys->EstimateSize(cells->GetNumberOfCells(),3);
+      newPolys->Reserve(cells->GetNumberOfCells(),3);
       output->SetPolys(newPolys);
       }
     for (cells->InitTraversal(); cells->GetNextCell(npts,pts) && !abort; cellNum++)

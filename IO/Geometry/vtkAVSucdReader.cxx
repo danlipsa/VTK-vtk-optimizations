@@ -535,18 +535,12 @@ void vtkAVSucdReader::ReadGeometry(vtkUnstructuredGrid *output)
       vtkErrorMacro(<< "Error allocating types memory\n");
       }
 
-    vtkIdTypeArray *listcells = vtkIdTypeArray::New();
-    // this array contains a list of NumberOfCells tuples
-    // each tuple is 1 integer, i.e. the number of indices following it (N)
-    // followed by these N integers
-    listcells->SetNumberOfValues(this->NumberOfCells + this->NlistNodes);
+    vtkCellArray *cells = vtkCellArray::New();
+    cells->Allocate(this->NumberOfCells, this->NlistNodes);
 
-    this->ReadBinaryCellTopology(materials, types, listcells);
+    this->ReadBinaryCellTopology(materials, types, cells);
     this->ReadXYZCoords(coords);
 
-    vtkCellArray *cells = vtkCellArray::New();
-    cells->SetCells(this->NumberOfCells, listcells);
-    listcells->Delete();
 
     output->SetCells(types, cells);
     cells->Delete();
@@ -578,11 +572,10 @@ void vtkAVSucdReader::ReadGeometry(vtkUnstructuredGrid *output)
 //----------------------------------------------------------------------------
 void vtkAVSucdReader::ReadBinaryCellTopology(vtkIntArray *materials,
                                              int *types,
-                                             vtkIdTypeArray *listcells)
+                                             vtkCellArray *cells)
 {
   int i, j, k2=0;
   int *mat = materials->GetPointer(0);
-  vtkIdType *list = listcells->GetPointer(0);
   int *ctype = new int[4 * this->NumberOfCells];
   if(ctype == NULL)
     {
@@ -605,21 +598,22 @@ void vtkAVSucdReader::ReadBinaryCellTopology(vtkIntArray *materials,
 
   for(i=0; i < this->NumberOfCells; i++)
     {
-    *list++ = ctype[4*i+2];
+    vtkIdType nPoints = ctype[4*i+2];
+    cells->InsertNextCell(nPoints);
     if(ctype[4*i+3] == vtkAVSucdReader::PYR)
       { //UCD ordering is 0,1,2,3,4 => VTK ordering is 1,2,3,4,0
-      *list++ = topology_list[++k2] - 1;
-      *list++ = topology_list[++k2] - 1;
-      *list++ = topology_list[++k2] - 1;
-      *list++ = topology_list[++k2] - 1;
-      *list++ = topology_list[k2-4] - 1;
+      cells->InsertCellPoint(topology_list[++k2] - 1);
+      cells->InsertCellPoint(topology_list[++k2] - 1);
+      cells->InsertCellPoint(topology_list[++k2] - 1);
+      cells->InsertCellPoint(topology_list[++k2] - 1);
+      cells->InsertCellPoint(topology_list[k2-4] - 1);
       k2++;
       }
      else
       {
        for(j=0; j < ctype[4*i+2]; j++)
          {
-         *list++ = topology_list[k2++] - 1;
+         cells->InsertCellPoint(topology_list[k2++] - 1);
          }
       }
     }

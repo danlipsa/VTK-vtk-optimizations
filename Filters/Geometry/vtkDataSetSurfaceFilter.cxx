@@ -497,8 +497,7 @@ int vtkDataSetSurfaceFilter::StructuredExecute(vtkDataSet *input,
   else
     {
     outPolys = vtkCellArray::New();
-    outPolys->Allocate(
-      outPolys->EstimateSize(cellArraySize, 4));
+    outPolys->Reserve(cellArraySize, 4);
     output->SetPolys(outPolys);
     outPolys->Delete();
     }

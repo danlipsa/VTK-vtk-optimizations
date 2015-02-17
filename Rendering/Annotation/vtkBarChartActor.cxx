@@ -453,9 +453,9 @@ int vtkBarChartActor::PlaceAxes(vtkViewport *viewport, int *vtkNotUsed(size))
   vtkPoints *pts = vtkPoints::New();
   pts->Allocate(this->N*4);
   vtkCellArray *xaxis = vtkCellArray::New();
-  xaxis->Allocate(xaxis->EstimateSize(1,2));
+  xaxis->Reserve(1,2);
   vtkCellArray *polys = vtkCellArray::New();
-  polys->Allocate(polys->EstimateSize(this->N,4));
+  polys->Reserve(this->N,4);
   vtkUnsignedCharArray *colors = vtkUnsignedCharArray::New();
   colors->SetNumberOfComponents(3);
   this->PlotData->SetPoints(pts);

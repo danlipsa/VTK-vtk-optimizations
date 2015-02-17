@@ -56,8 +56,8 @@ protected:
   unsigned char *CellTypePtr;
   unsigned char *CellTypeEnd;
 
-  vtkIdType *ConnectivityBegin;
-  vtkIdType *ConnectivityPtr;
+  vtkIdType ConnectivityId;
+  vtkCellArray* CellArray;
   vtkIdType *FacesBegin;
   vtkIdType *FacesLocsBegin;
   vtkIdType *FacesLocsPtr;

@@ -378,14 +378,10 @@ void vtkXMLPolyDataWriter::CalculateSuperclassFraction(float* fractions)
   vtkIdType pointsSize = this->GetNumberOfInputPoints();
 
   // This class will write cell specifications.
-  vtkIdType connectSizeV = (input->GetVerts()->GetData()->GetNumberOfTuples() -
-                            input->GetVerts()->GetNumberOfCells());
-  vtkIdType connectSizeL = (input->GetLines()->GetData()->GetNumberOfTuples() -
-                            input->GetLines()->GetNumberOfCells());
-  vtkIdType connectSizeS = (input->GetStrips()->GetData()->GetNumberOfTuples() -
-                            input->GetStrips()->GetNumberOfCells());
-  vtkIdType connectSizeP = (input->GetPolys()->GetData()->GetNumberOfTuples() -
-                            input->GetPolys()->GetNumberOfCells());
+  vtkIdType connectSizeV = input->GetVerts()->GetNumberOfPoints();
+  vtkIdType connectSizeL = input->GetLines()->GetNumberOfPoints();
+  vtkIdType connectSizeS = input->GetStrips()->GetNumberOfPoints();
+  vtkIdType connectSizeP = input->GetPolys()->GetNumberOfPoints();
   vtkIdType offsetSizeV = input->GetVerts()->GetNumberOfCells();
   vtkIdType offsetSizeL = input->GetLines()->GetNumberOfCells();
   vtkIdType offsetSizeS = input->GetStrips()->GetNumberOfCells();
