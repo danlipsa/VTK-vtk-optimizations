@@ -1,8 +1,8 @@
 set(Module_SRCS
-  vtkSMPContourGrid.cxx
+#  vtkSMPContourGrid.cxx
   vtkSMPContourGridManyPieces.cxx
   vtkSMPMergePoints.cxx
-  vtkSMPMergePolyDataHelper.cxx
+#  vtkSMPMergePolyDataHelper.cxx
   vtkSMPTransform.cxx
   vtkSMPWarpVector.cxx
   )

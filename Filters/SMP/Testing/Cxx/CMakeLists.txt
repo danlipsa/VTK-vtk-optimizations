@@ -1,6 +1,6 @@
 vtk_add_test_cxx(${vtk-module}CxxTests tests
   NO_VALID
-  TestSMPContour.cxx
+#  TestSMPContour.cxx
   TestSMPTransform.cxx
   TestSMPWarp.cxx
   )
